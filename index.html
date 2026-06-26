@@ -178,17 +178,47 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   .hdr-stat-block{border-left:none;border-top:1px solid var(--border);padding:4px 8px;width:100%;justify-content:space-around}
   .hdr-owners,.mode-toggle{display:none}
   .body{flex-direction:column;overflow:visible}
-  .globe-panel{width:100%!important;flex-shrink:0;border-bottom:1px solid var(--border)}
+  /* Globe: compact by default, collapses when a node is selected */
+  .globe-panel{width:100%!important;flex-shrink:0;border-bottom:1px solid var(--border);transition:max-height 0.35s ease}
   #globe-mount{min-height:55vw;max-height:260px}
+  .globe-panel.collapsed #globe-mount{min-height:0;max-height:80px}
+  .globe-panel.collapsed .globe-foot{display:none}
+  /* Back-to-globe button — only visible on mobile when a node is selected */
+  #back-to-globe{display:none;width:100%;padding:8px;background:var(--bg2);border:none;border-bottom:1px solid var(--border);color:var(--cyan);font-family:"Courier New",monospace;font-size:9px;letter-spacing:2px;cursor:pointer;text-align:center}
+  #back-to-globe.visible{display:block}
   .right{width:100%!important;min-width:0;border-left:none;border-top:1px solid var(--border)}
   .analytics-grid{grid-template-columns:1fr 1fr}
   .tabs{overflow-x:auto}
   .tab-btn{padding:6px 10px;font-size:9px}
 }
+
+/* ── Lock screen ── */
+#lock-screen{position:fixed;inset:0;background:#020810;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px}
+#lock-screen.hidden{display:none}
+.lock-logo{font-family:'Courier New',monospace;font-size:11px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px}
+.lock-title{font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:var(--textF);text-transform:uppercase}
+.lock-input-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:16px}
+#lock-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:13px;letter-spacing:2px;padding:10px 18px;border-radius:4px;outline:none;text-align:center;width:220px}
+#lock-input:focus{border-color:var(--cyan)}
+#lock-input.error{border-color:var(--red);animation:shake 0.3s ease}
+#lock-btn{background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;padding:8px 24px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:all 0.2s}
+#lock-btn:hover{background:rgba(79,195,247,0.1)}
+.lock-err{font-size:9px;letter-spacing:2px;color:var(--red);font-family:'Courier New',monospace;min-height:14px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
 </head>
 <body>
 <div class="wrap">
+<div id="lock-screen">
+  <div class="lock-logo">◎ Gigablue</div>
+  <div class="lock-title">Grant Intelligence System // v8.0</div>
+  <div class="lock-input-wrap">
+    <input id="lock-input" type="password" placeholder="enter password" autocomplete="off" />
+    <button id="lock-btn">Unlock</button>
+    <div class="lock-err" id="lock-err"></div>
+  </div>
+</div>
+
 
   <!-- Header -->
   <div class="hdr">
@@ -213,6 +243,9 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
       </div>
     </div>
   </div>
+
+  <!-- Mobile back-to-globe button -->
+  <button id="back-to-globe" onclick="mobileBackToGlobe()">↑ back to globe</button>
 
   <!-- Body -->
   <div class="body" id="body-el">
@@ -1072,9 +1105,12 @@ function renderContent(){
 
 function selectGrant(id){
   selectedId=id;
+  document.getElementById('disc-panel').style.display='none';
+  document.getElementById('right-panel').style.display='flex';
   document.getElementById('panel-empty').style.display='none';
   document.getElementById('panel-filled').style.display='flex';
   renderNodePicker();renderPanelHeader();renderContent();renderHdrOwners();
+  mobileCollapse();
 }
 function addOwner(){
   const inp=document.getElementById('owner-inp');if(!inp||!inp.value.trim())return;
@@ -1204,6 +1240,8 @@ function selectDiscGrant(id){
   const g=DISC_SEED.find(d=>d.id===id);
   if(!g)return;
 
+  document.getElementById('right-panel').style.display='none';
+  document.getElementById('disc-panel').style.display='flex';
   document.getElementById('disc-empty').style.display='none';
   document.getElementById('disc-panel-inner').style.display='flex';
 
@@ -1220,8 +1258,7 @@ function selectDiscGrant(id){
   document.querySelectorAll('.disc-tab').forEach(t=>t.classList.toggle('active',t.dataset.dtab==='overview'));
   renderDiscContent(g);
 
-  // Mobile scroll
-  if(window.innerWidth<=700)document.getElementById('disc-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  mobileCollapse();
 }
 
 function switchDiscTab(tab){
@@ -1480,6 +1517,55 @@ function init(){
   syncFromGmail();
   setInterval(syncFromGmail, SYNC_INTERVAL_MS);
 }
+
+// ── Password lock ──
+(async function(){
+  const HASH='3e2a2c6d8b1f4e9d0c7a5b3f8e2d1c6a9b4f7e0d3c8a5b2f1e4d7c0a9b6f3e2'; // placeholder, replaced below
+  // Actual hash of Gigablue2026!
+  const encoder=new TextEncoder();
+  const data=encoder.encode('Gigablue2026!');
+  const hashBuf=await crypto.subtle.digest('SHA-256',data);
+  const CORRECT=Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+
+  const stored=sessionStorage.getItem('gb_auth');
+  if(stored===CORRECT){
+    document.getElementById('lock-screen').classList.add('hidden');
+    return;
+  }
+
+  async function attempt(){
+    const val=document.getElementById('lock-input').value;
+    const vData=encoder.encode(val);
+    const vBuf=await crypto.subtle.digest('SHA-256',vData);
+    const vHash=Array.from(new Uint8Array(vBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(vHash===CORRECT){
+      sessionStorage.setItem('gb_auth',CORRECT);
+      document.getElementById('lock-screen').classList.add('hidden');
+    } else {
+      const inp=document.getElementById('lock-input');
+      inp.classList.add('error');
+      document.getElementById('lock-err').textContent='// incorrect password';
+      setTimeout(()=>{inp.classList.remove('error');document.getElementById('lock-err').textContent='';},1500);
+      inp.value='';inp.focus();
+    }
+  }
+
+  document.getElementById('lock-btn').addEventListener('click',attempt);
+  document.getElementById('lock-input').addEventListener('keydown',e=>{if(e.key==='Enter')attempt();});
+})();
+
+// ── Mobile globe collapse ──
+function mobileCollapse(){
+  if(window.innerWidth>700)return;
+  document.getElementById('globe-panel').classList.add('collapsed');
+  document.getElementById('back-to-globe').classList.add('visible');
+}
+function mobileBackToGlobe(){
+  document.getElementById('globe-panel').classList.remove('collapsed');
+  document.getElementById('back-to-globe').classList.remove('visible');
+  document.getElementById('globe-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 init();
 </script>
 </html>
