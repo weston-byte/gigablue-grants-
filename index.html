@@ -41,6 +41,8 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 
 /* ── Body ── */
 .body{display:flex;flex:1;min-height:0;overflow:hidden}
+#divider{width:4px;background:var(--border);cursor:col-resize;flex-shrink:0;transition:background 0.15s}
+#divider:hover,#divider.dragging{background:var(--cyan)}
 
 /* ── Globe canvas (full left panel) ── */
 .globe-panel{position:relative;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bg0)}
@@ -203,6 +205,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
         <span class="hdr-stat">vectors: <b id="stat-total">0</b></span>
         <span class="hdr-stat">active: <b id="stat-active">0</b></span>
         <span class="hdr-stat">updates: <b id="stat-updates">0</b></span>
+        <span class="hdr-stat">discovery: <b id="stat-disc">0</b></span>
       </div>
       <div class="hdr-owners" id="hdr-owners">
         <span class="hdr-owners-label">OWNERS //</span>
@@ -242,6 +245,8 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
       </div>
     </div>
 
+    <div id="divider"></div>
+
     <!-- Right info panel -->
     <div class="right" id="right-panel">
       <div id="panel-empty" class="panel-hdr" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
@@ -275,6 +280,32 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
           </div>
         </div>
         <div class="content" id="panel-content"></div>
+      </div>
+    </div>
+
+    <!-- Discovery info panel -->
+    <div class="right" id="disc-panel" style="display:none;flex-direction:column;border-left:1px solid var(--border)">
+      <div id="disc-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center">
+        <div style="font-size:22px;opacity:0.3">◈</div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--textF)">Select a node</div>
+        <div style="font-size:9px;color:var(--textF);opacity:0.6">// click any orb in the ecosystem</div>
+      </div>
+      <div id="disc-panel-inner" style="display:none;flex-direction:column;height:100%">
+        <div class="panel-hdr" style="padding:14px 16px 10px">
+          <div style="font-size:8px;letter-spacing:2px;color:var(--green);margin-bottom:4px" id="disc-geo"></div>
+          <h2 class="panel-title" id="disc-title" style="color:var(--green)"></h2>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">
+            <span class="status-badge" id="disc-type" style="font-size:9px"></span>
+            <span style="font-size:9px;color:var(--textD)" id="disc-fund"></span>
+          </div>
+          <div class="tab-row" style="margin-top:10px">
+            <button class="tab-btn disc-tab active" data-dtab="overview" onclick="switchDiscTab('overview')">Overview</button>
+            <button class="tab-btn disc-tab" data-dtab="actions" onclick="switchDiscTab('actions')">Actions</button>
+            <button class="tab-btn disc-tab" data-dtab="contacts" onclick="switchDiscTab('contacts')">Contacts</button>
+            <button class="tab-btn disc-tab" data-dtab="process" onclick="switchDiscTab('process')">Process</button>
+          </div>
+        </div>
+        <div class="content" id="disc-content"></div>
       </div>
     </div>
 
@@ -1076,7 +1107,7 @@ document.getElementById('tabs').addEventListener('click',e=>{
 
 /* ── Divider drag ── */
 const dividerEl=document.getElementById('divider');
-const leftPanel=document.getElementById('left-panel');
+const leftPanel=document.getElementById('globe-panel');
 const bodyEl=document.getElementById('body-el');
 let divDragging=false,divStartX=0,divStartW=0;
 dividerEl.addEventListener('mousedown',e=>{
@@ -1399,56 +1430,4 @@ function buildUnifiedGlobe(){
     if(Math.sqrt(dx*dx+dy*dy)<10){
       const rect=globeRenderer.domElement.getBoundingClientRect();
       const tx=((e.changedTouches[0].clientX-rect.left)/rect.width)*2-1,ty=-((e.changedTouches[0].clientY-rect.top)/rect.height)*2+1;
-      const ray=new THREE.Raycaster();ray.setFromCamera({x:tx,y:ty},globeCamera);
-      const hits=ray.intersectObjects(allNodeMeshes);
-      if(hits.length>0){const {id,type}=hits[0].object.userData;if(type==='pipeline')selectGrant(id);else selectDiscGrant(id);}
-    }
-    tStart=null;tLast=null;
-  },{passive:true});
-
-  /* ── Animation loop ── */
-  (function animate(){
-    globeRAF=requestAnimationFrame(animate);
-    globeTime+=0.016;
-    if(!autoRotate&&!isDragging)autoRotate=true;
-    if(autoRotate)rotY+=0.0015;
-    globeMainGroup.rotation.y=rotY;globeMainGroup.rotation.x=rotX;
-    globeCamera.position.z+=(zoom-globeCamera.position.z)*0.08;globeCamera.updateProjectionMatrix();
-    raycaster.setFromCamera(mousePos,globeCamera);
-    const hits=raycaster.intersectObjects(allNodeMeshes);
-    const hovId=hits.length>0?hits[0].object.userData.id:null;
-    allNodeMeshes.forEach((hit,idx)=>{
-      const sg=hit.userData.sg;if(!sg)return;
-      const id=hit.userData.id,type=hit.userData.type;
-      const isHov=id===hovId,isSel=type==='pipeline'?id===selectedId:id===discSelectedId;
-      const pulse=1+Math.sin(globeTime*2+idx*0.9)*0.04;
-      sg.scale.setScalar(isSel?1.35:isHov?1.18:pulse);
-      if(sg.userData.coreMat)sg.userData.coreMat.opacity=isSel?1.0:isHov?0.95:type==='pipeline'?0.88:0.82;
-      if(allGlowMeshes[idx])allGlowMeshes[idx].material.opacity=isSel?0.28:isHov?0.14:0.03;
-      if(type==='pipeline')sg.rotation.y=globeTime*0.4*(idx%2===0?1:-1);
-      else{sg.rotation.y=globeTime*0.2;sg.rotation.x=globeTime*0.15*(idx%2===0?1:-1);}
-    });
-    globeRenderer.domElement.style.cursor=hovId?'pointer':'crosshair';
-    globeRenderer.render(globeScene,globeCamera);
-  })();
-}
-
-function rebuildGlobe(){
-  buildUnifiedGlobe();
-}
-
-
-function init(){
-  if(window.innerWidth>700){
-    document.getElementById('globe-panel').style.width='52%';
-  }
-  loadStorage();
-  renderNodePicker();renderPanelHeader();renderContent();renderHdrOwners();updateStats();
-  buildUnifiedGlobe();
-  // Sync from Gmail on load, then every 2 hours
-  syncFromGmail();
-  setInterval(syncFromGmail, SYNC_INTERVAL_MS);
-}
-init();
-</script>
-</html>
+      const ray=
