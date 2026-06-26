@@ -298,6 +298,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
                 <span style="font-size:9px;color:var(--mutedT);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" id="ph-time"></span>
               </div>
               <h2 class="panel-title" id="ph-title"></h2>
+              <span id="ph-email-ts" class="email-badge" style="display:none;margin-top:4px"></span>
               <div class="panel-meta">
                 <span class="status-badge" id="ph-badge"></span>
                 <span class="fund-val" id="ph-fund"></span>
@@ -827,6 +828,13 @@ const DISC_SEED = [
 
 
 
+
+// ── Utility functions ──
+const uid=()=>Math.random().toString(36).slice(2,9);
+const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const avatarColor=n=>{const h=['#f97316','#4fc3f7','#a78bfa','#34d399','#fbbf24','#f87171','#38bdf8','#4ade80'];let s=0;for(let i=0;i<n.length;i++)s+=n.charCodeAt(i);return h[s%h.length];};
+const fmt=ts=>{if(!ts)return'—';const d=new Date(ts);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});};
+
 // ── App state ──
 let grants=[...SEED];
 let owners={},comments={};
@@ -883,7 +891,8 @@ async function syncFromGmail(){
         if(SEED.find(s=>s.id===g.id))return;
         const existing=grants.find(e=>e.id===g.id);
         if(!existing){
-          // Brand new — add to globe
+          // Brand new — add to globe, stamp with arrival time
+          g.emailedAt=g.emailedAt||Date.now();
           grants.push(g);
           newCount++;
         } else {
@@ -966,6 +975,16 @@ function renderPanelHeader(){
   document.getElementById('ph-geo').textContent=g.geo;
   document.getElementById('ph-geo').style.color=s.color;
   document.getElementById('ph-time').textContent=g.timeline;
+  // Show email arrival timestamp if this grant came from Gmail
+  const tsEl=document.getElementById('ph-email-ts');
+  if(tsEl){
+    if(g.emailedAt){
+      tsEl.textContent='✉ received '+fmt(g.emailedAt);
+      tsEl.style.display='inline-flex';
+    } else {
+      tsEl.style.display='none';
+    }
+  }
   const titleEl=document.getElementById('ph-title');
   titleEl.textContent=g.label;
   // Email-discovered badge
@@ -1419,7 +1438,8 @@ function buildUnifiedGlobe(){
     globeMainGroup.add(sp2);
   });
 
-  /* ── Neural network lines (geo-matched pipeline ↔ discovery) ── */
+  /* ── Neural network lines — faint, pulsing from pipeline node outward ── */
+  const neuralLines=[];
   allNodeMeshes.forEach(dHit=>{
     if(dHit.userData.type!=='discovery')return;
     const dg=DISC_SEED.find(g=>g.id===dHit.userData.id);if(!dg)return;
@@ -1430,10 +1450,16 @@ function buildUnifiedGlobe(){
                   pg.geo.toLowerCase().includes(dg.region.toLowerCase())||
                   dg.geo.toLowerCase().includes(pg.geo.toLowerCase().split('/')[0].trim());
       if(!match)return;
-      const netGeo=new THREE.BufferGeometry().setFromPoints([dHit.position.clone(),pHit.position.clone()]);
-      globeMainGroup.add(new THREE.Line(netGeo,new THREE.LineBasicMaterial({color:0x1a5a3a,transparent:true,opacity:0.15})));
+      const mat=new THREE.LineBasicMaterial({color:0x1a4a6a,transparent:true,opacity:0.12});
+      const geo=new THREE.BufferGeometry().setFromPoints([pHit.position.clone(),dHit.position.clone()]);
+      const line=new THREE.Line(geo,mat);
+      globeMainGroup.add(line);
+      // urgency drives pulse speed and peak brightness
+      const urgency=(pg.urgency||50)/100;
+      neuralLines.push({mat, urgency, offset:Math.random()*Math.PI*2});
     });
   });
+  globeMainGroup.userData.neuralLines=neuralLines;
 
   /* ── Resize ── */
   new ResizeObserver(()=>{
@@ -1495,6 +1521,15 @@ function buildUnifiedGlobe(){
       if(allGlowMeshes[idx])allGlowMeshes[idx].material.opacity=isSel?0.28:isHov?0.14:0.03;
       if(type==='pipeline')sg.rotation.y=globeTime*0.4*(idx%2===0?1:-1);
       else{sg.rotation.y=globeTime*0.2;sg.rotation.x=globeTime*0.15*(idx%2===0?1:-1);}
+    });
+    // Animate neural lines — pulse brightness outward from pipeline node
+    const nl=globeMainGroup.userData.neuralLines||[];
+    nl.forEach(l=>{
+      // urgency controls speed (0.4–1.2) and peak opacity (0.12–0.45)
+      const speed=0.4+l.urgency*0.8;
+      const peak=0.12+l.urgency*0.33;
+      l.offset+=speed*0.016;
+      l.mat.opacity=0.06+(Math.sin(l.offset)*0.5+0.5)*(peak-0.06);
     });
     globeRenderer.domElement.style.cursor=hovId?'pointer':'crosshair';
     globeRenderer.render(globeScene,globeCamera);
