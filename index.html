@@ -1134,18 +1134,6 @@ async function handleFile(file){
   }
 }
 
-/* ── Globe ── */
-let globeRenderer,globeScene,globeCamera,globeMainGroup;
-let globeNodeMeshes=[],globeGlowMeshes=[],globeRAF=null;
-let rotY=0.3,rotX=-0.15,isDragging=false,prevMX=0,prevMY=0;
-let zoom=5.0,autoRotate=true,mousePos={x:-9999,y:-9999},globeTime=0;
-
-function makeRing(radius,color,opacity,rx,ry,rz){
-  const pts=[];for(let i=0;i<=128;i++){const a=(i/128)*Math.PI*2;pts.push(Math.cos(a)*radius,Math.sin(a)*radius,0);}
-  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
-  const l=new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity}));
-  l.rotation.set(rx||0,ry||0,rz||0);return l;
-}
 
 function buildSphere(radius,statusColor){
   const group=new THREE.Group();
@@ -1173,31 +1161,8 @@ function buildSphere(radius,statusColor){
   group.userData.coreMat=coreMat;group.userData.wireMat=wireMat;
   return group;
 }
-
-
-
-/* ── Authentication ── */
-
-
-// SHA-256 of your password — change this hash to change the password
-// Current password: Gigablue2026!
-// To generate a new hash: open browser console and run:
-// crypto.subtle.digest('SHA-256',new TextEncoder().encode('yourpassword')).then(b=>console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
-
-
-
-
-
-
-// ═══════════════════════════════════════════════════════════
-// DISCOVERY ECOSYSTEM — Grant Opportunity Database
-// ═══════════════════════════════════════════════════════════
-
-
-
-// ── Discovery Globe State ──
 let discScene,discCamera,discRenderer,discGroup,discRAF=null;
-let discNodes=[],discSelected=null,discActiveTab='overview';
+let discNodes=[],discSelected=null;
 let discHovId=null,discRotX=0,discRotY=0,discIsDragging=false;
 let discDragStart={x:0,y:0},discRotStart={x:0,y:0};
 let discAutoRotate=true,discTime=0;
