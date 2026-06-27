@@ -243,6 +243,64 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   .repo-col-hdr span:nth-child(n+4){display:none}
   .repo-filters{gap:5px}
 }
+
+/* ── Upload page ── */
+#upload-view{display:none;flex:1;overflow-y:auto;flex-direction:column;padding:24px 32px;gap:24px}
+#upload-view.visible{display:flex}
+.up-section{background:var(--bg1);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.up-section-hdr{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.up-section-title{font-size:10px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase}
+.up-section-sub{font-size:9px;color:var(--textF);letter-spacing:1px}
+.up-drop{border:2px dashed var(--border);border-radius:6px;padding:40px 24px;text-align:center;cursor:pointer;transition:all 0.2s;margin:18px;position:relative}
+.up-drop:hover,.up-drop.drag{border-color:var(--cyan);background:rgba(79,195,247,0.04)}
+.up-drop-icon{font-size:28px;color:var(--cyanD);margin-bottom:12px}
+.up-drop-title{font-size:12px;letter-spacing:2px;color:var(--text);margin-bottom:6px;font-family:"Courier New",monospace}
+.up-drop-sub{font-size:9px;color:var(--textF);letter-spacing:1px}
+.up-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.up-queue{display:flex;flex-direction:column;gap:8px;padding:12px 18px 18px}
+.up-queue:empty::after{content:"// no documents queued";font-size:9px;letter-spacing:2px;color:var(--textF);display:block;padding:8px 0}
+.up-item{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--border)}
+.up-item.processing{border-left-color:var(--cyan);animation:upPulse 1.5s ease infinite}
+.up-item.done{border-left-color:#34d399}
+.up-item.error{border-left-color:#f87171}
+@keyframes upPulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.up-item-name{font-size:10px;color:var(--text);font-family:"Courier New",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.up-item-status{font-size:9px;letter-spacing:1px;color:var(--textF);white-space:nowrap}
+.up-item-action{background:transparent;border:1px solid var(--border);color:var(--textD);font-family:"Courier New",monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:3px;cursor:pointer;transition:all 0.15s}
+.up-item-action:hover{border-color:var(--cyan);color:var(--cyan)}
+.up-result{display:none;flex-direction:column;gap:0;border-top:1px solid var(--border)}
+.up-result.visible{display:flex}
+.up-result-hdr{padding:12px 18px;background:rgba(52,211,153,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.up-result-title{font-size:11px;font-weight:700;color:#34d399;font-family:"Courier New",monospace}
+.up-result-meta{font-size:9px;color:var(--textD);letter-spacing:1px}
+.up-result-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.up-result-col{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.up-result-col:first-child{border-right:1px solid var(--border)}
+.up-field{display:flex;flex-direction:column;gap:3px}
+.up-field-label{font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase}
+.up-field-val{font-size:11px;color:var(--text);font-family:"Courier New",monospace}
+.up-field-val.large{font-size:13px;color:var(--cyan);font-weight:700}
+.up-bar-wrap{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:2px}
+.up-bar-fill{height:100%;border-radius:3px;transition:width 0.4s}
+.up-desc{font-size:10px;color:var(--textD);line-height:1.6;padding:14px 18px;border-top:1px solid var(--border)}
+.up-actions-list{display:flex;flex-direction:column;gap:6px;padding:14px 18px;border-top:1px solid var(--border)}
+.up-action-row{display:flex;align-items:flex-start;gap:8px;font-size:10px;color:var(--textD)}
+.up-action-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);flex-shrink:0;margin-top:3px}
+.up-contacts-list{display:flex;flex-direction:column;gap:6px;padding:14px 18px;border-top:1px solid var(--border)}
+.up-contact-row{font-size:9px;color:var(--textD);letter-spacing:1px}
+.up-add-btn{margin:14px 18px;padding:9px 0;background:rgba(79,195,247,0.1);border:1px solid var(--cyan);color:var(--cyan);font-family:"Courier New",monospace;font-size:10px;letter-spacing:2px;border-radius:4px;cursor:pointer;transition:all 0.2s;text-align:center;width:calc(100% - 36px)}
+.up-add-btn:hover{background:rgba(79,195,247,0.2)}
+.up-add-btn:disabled{opacity:0.4;cursor:default}
+.up-history{display:flex;flex-direction:column;gap:6px;padding:12px 18px 18px;max-height:240px;overflow-y:auto}
+.up-hist-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.15s}
+.up-hist-row:hover{border-color:var(--borderB);background:var(--bg3)}
+.up-hist-name{font-size:10px;color:var(--text);font-family:"Courier New",monospace;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.up-hist-meta{font-size:8px;color:var(--textF);letter-spacing:1px;white-space:nowrap}
+@media(max-width:700px){
+  #upload-view{padding:12px}
+  .up-result-body{grid-template-columns:1fr}
+  .up-result-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+}
 </style>
 </head>
 <body>
@@ -287,6 +345,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   <nav id="main-nav">
     <button class="nav-btn active" onclick="switchView('globe')" id="nav-globe">◎ Globe</button>
     <button class="nav-btn" onclick="switchView('repo')" id="nav-repo">≡ Repository</button>
+    <button class="nav-btn" onclick="switchView('upload')" id="nav-upload">⊕ Upload</button>
   </nav>
 
   <!-- Mobile back-to-globe button -->
@@ -324,6 +383,96 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
         <span>Readiness</span>
       </div>
       <div class="repo-list" id="repo-list"></div>
+    </div>
+
+
+    <!-- Upload / Analysis view -->
+    <div id="upload-view">
+
+      <!-- Drop zone -->
+      <div class="up-section">
+        <div class="up-section-hdr">
+          <span class="up-section-title">⊕ Upload Grant Document</span>
+          <span class="up-section-sub">PDF · TXT · MD · PNG · JPG — AI parsed</span>
+        </div>
+        <div class="up-drop" id="up-drop-zone">
+          <input type="file" id="up-file-inp" accept=".pdf,.txt,.md,.png,.jpg,.jpeg" multiple>
+          <div class="up-drop-icon">⊕</div>
+          <div class="up-drop-title">DROP DOCUMENT HERE</div>
+          <div class="up-drop-sub">or click to browse · multiple files supported</div>
+        </div>
+      </div>
+
+      <!-- Analysis result panel -->
+      <div class="up-section">
+        <div class="up-section-hdr">
+          <span class="up-section-title">AI Analysis</span>
+          <span class="up-section-sub" id="up-result-file">// no document analysed yet</span>
+        </div>
+        <div id="up-result-panel" class="up-result">
+          <div class="up-result-hdr">
+            <div>
+              <div class="up-result-title" id="up-r-label"></div>
+              <div class="up-result-meta" id="up-r-geo"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="repo-row-badge" id="up-r-badge" style="font-size:9px"></span>
+              <span id="up-r-fund" style="font-size:9px;color:var(--textD)"></span>
+            </div>
+          </div>
+          <div class="up-result-body">
+            <div class="up-result-col">
+              <div class="up-field">
+                <div class="up-field-label">Readiness</div>
+                <div class="up-field-val large" id="up-r-readiness"></div>
+                <div class="up-bar-wrap"><div class="up-bar-fill" id="up-r-readiness-bar" style="background:#4fc3f7"></div></div>
+              </div>
+              <div class="up-field">
+                <div class="up-field-label">Urgency</div>
+                <div class="up-field-val large" id="up-r-urgency"></div>
+                <div class="up-bar-wrap"><div class="up-bar-fill" id="up-r-urgency-bar" style="background:#f97316"></div></div>
+              </div>
+              <div class="up-field">
+                <div class="up-field-label">Timeline</div>
+                <div class="up-field-val" id="up-r-timeline"></div>
+              </div>
+              <div class="up-field">
+                <div class="up-field-label">Current Standing</div>
+                <div class="up-field-val" id="up-r-standing"></div>
+              </div>
+            </div>
+            <div class="up-result-col">
+              <div class="up-field">
+                <div class="up-field-label">Fund Size</div>
+                <div class="up-field-val" id="up-r-fund2"></div>
+              </div>
+              <div class="up-field" id="up-r-metrics-wrap">
+                <div class="up-field-label">Key Metrics</div>
+                <div id="up-r-metrics" style="display:flex;flex-direction:column;gap:4px;margin-top:2px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="up-desc" id="up-r-desc"></div>
+          <div class="up-actions-list" id="up-r-actions"></div>
+          <div class="up-contacts-list" id="up-r-contacts" style="display:none"></div>
+          <button class="up-add-btn" id="up-add-btn" onclick="upAddToGlobe()">+ ADD TO GLOBE AS NEW VECTOR</button>
+        </div>
+        <!-- Processing state -->
+        <div id="up-processing" style="display:none;padding:32px;text-align:center">
+          <div style="font-size:10px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">// ANALYSING WITH AI</div>
+          <div style="font-size:9px;color:var(--textF);letter-spacing:1px" id="up-proc-stage">reading document...</div>
+        </div>
+      </div>
+
+      <!-- Queue / History -->
+      <div class="up-section">
+        <div class="up-section-hdr">
+          <span class="up-section-title">Queue</span>
+          <span class="up-section-sub" id="up-queue-count">0 documents</span>
+        </div>
+        <div class="up-queue" id="up-queue"></div>
+      </div>
+
     </div>
 
     <!-- Globe panel (unified canvas) -->
@@ -1718,19 +1867,20 @@ const STATUS_META={
 };
 
 function switchView(view){
-  const isRepo=view==='repo';
+  const isGlobe=view==='globe', isRepo=view==='repo', isUpload=view==='upload';
   document.getElementById('repo-view').classList.toggle('visible', isRepo);
-  document.getElementById('globe-panel').style.display=isRepo?'none':'';
-  document.getElementById('right-panel').style.display=isRepo?'none':'';
+  document.getElementById('upload-view').classList.toggle('visible', isUpload);
+  document.getElementById('globe-panel').style.display=isGlobe?'':'none';
+  document.getElementById('right-panel').style.display=isGlobe&&window.innerWidth>700?'flex':'none';
   document.getElementById('disc-panel').style.display='none';
-  document.getElementById('divider').style.display=isRepo?'none':'';
+  document.getElementById('divider').style.display=isGlobe&&window.innerWidth>700?'':'none';
   document.getElementById('back-to-globe').classList.remove('visible');
-  document.getElementById('nav-globe').classList.toggle('active',!isRepo);
+  document.getElementById('nav-globe').classList.toggle('active', isGlobe);
   document.getElementById('nav-repo').classList.toggle('active', isRepo);
+  document.getElementById('nav-upload').classList.toggle('active', isUpload);
   if(isRepo){buildRepoFilters();renderRepo();}
-  if(!isRepo&&window.innerWidth>700){
+  if(isGlobe&&window.innerWidth>700){
     document.getElementById('globe-panel').style.width='55%';
-    document.getElementById('right-panel').style.display='flex';
   }
 }
 
@@ -1826,6 +1976,186 @@ function repoSelectGrant(id, source){
   if(source==='pipeline'){selectGrant(id);}
   else{selectDiscGrant(id);}
   // Highlight the row briefly before switching
+}
+
+// ── Upload page ──
+let upCurrentParsed=null;
+const upQueue=[];
+
+(function initUploadPage(){
+  const drop=document.getElementById('up-drop-zone');
+  const inp=document.getElementById('up-file-inp');
+  if(!drop||!inp)return;
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag');});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('drag'));
+  drop.addEventListener('drop',e=>{
+    e.preventDefault();drop.classList.remove('drag');
+    Array.from(e.dataTransfer.files).forEach(upQueueFile);
+  });
+  inp.addEventListener('change',e=>{
+    Array.from(e.target.files).forEach(upQueueFile);
+    inp.value='';
+  });
+})();
+
+function upQueueFile(file){
+  const item={id:uid(),file,name:file.name,status:'queued',parsed:null};
+  upQueue.push(item);
+  upRenderQueue();
+  // Auto-process if nothing is currently running
+  if(upQueue.filter(i=>i.status==='processing').length===0) upProcessNext();
+}
+
+function upRenderQueue(){
+  const el=document.getElementById('up-queue');
+  const count=document.getElementById('up-queue-count');
+  if(!el)return;
+  count.textContent=upQueue.length+' document'+(upQueue.length!==1?'s':'');
+  if(!upQueue.length){el.innerHTML='';return;}
+  el.innerHTML=upQueue.map(item=>`
+    <div class="up-item ${item.status}" id="upitem-${item.id}">
+      <div class="up-item-name">${item.name}</div>
+      <div class="up-item-status">${
+        item.status==='queued'?'// queued':
+        item.status==='processing'?'// analysing...':
+        item.status==='done'?'✓ done':
+        '✗ '+item.error
+      }</div>
+      ${item.status==='done'?`<button class="up-item-action" onclick="upShowResult('${item.id}')">View</button>`:''}
+      ${item.status==='error'?`<button class="up-item-action" onclick="upRetry('${item.id}')">Retry</button>`:''}
+    </div>
+  `).join('');
+}
+
+async function upProcessNext(){
+  const next=upQueue.find(i=>i.status==='queued');
+  if(!next)return;
+  next.status='processing';
+  upRenderQueue();
+  document.getElementById('up-result-file').textContent='// analysing: '+next.name;
+  document.getElementById('up-result-panel').classList.remove('visible');
+  document.getElementById('up-processing').style.display='block';
+
+  const setStage=s=>{const el=document.getElementById('up-proc-stage');if(el)el.textContent=s;};
+  try{
+    const file=next.file;
+    const isPDF=/\.pdf$/i.test(file.name), isImg=/\.(png|jpg|jpeg|webp)$/i.test(file.name);
+    const msgContent=[];
+    if(isPDF||isImg){
+      setStage('encoding binary...');
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('read fail'));r.readAsDataURL(file);});
+      const mt=isPDF?'application/pdf':'image/png';
+      msgContent.push({type:isPDF?'document':'image',source:{type:'base64',media_type:mt,data:b64}});
+    } else {
+      setStage('reading text...');
+      const text=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read fail'));r.readAsText(file);});
+      msgContent.push({type:'text',text:'Document content:\n'+text.slice(0,12000)});
+    }
+    msgContent.push({type:'text',text:`Analyse this grant/funding document in detail. Return ONLY valid JSON with no markdown fences:
+{
+  "label": "short grant name (max 6 words)",
+  "geo": "country or region",
+  "status": "pursue|highpot|watch|future",
+  "fundSize": "funding amount or range",
+  "timeline": "key deadline or timeline",
+  "readiness": 50,
+  "urgency": 50,
+  "desc": "3-4 sentence analysis of this grant and its specific relevance to Gigablue's marine carbon dioxide removal (MCFS) technology — iron-oxide substrate deployed from vessels to stimulate phytoplankton growth",
+  "standing": "recommended engagement status and next steps",
+  "actions": [{"t": "specific action item", "u": true}],
+  "contacts": [{"name": "contact name", "role": "role", "email": "email if present"}],
+  "metrics": [{"k": "metric label", "v": "value"}]
+}`});
+
+    setStage('running AI analysis...');
+    const resp=await fetch('https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:msgContent}]})
+    });
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const data=await resp.json();
+    if(data.error)throw new Error(data.error.message||'API error');
+    const raw=data.content?.map(c=>c.text||'').join('').trim().replace(/```json\n?|```/g,'').trim();
+    if(!raw)throw new Error('empty AI response');
+    const parsed=JSON.parse(raw);
+    if(!parsed.label)throw new Error('could not parse grant data');
+    parsed.emailedAt=Date.now();
+    next.parsed=parsed;
+    next.status='done';
+    upRenderQueue();
+    upShowResult(next.id);
+  } catch(e){
+    console.error('Upload analysis error:',e);
+    next.status='error';next.error=e.message;
+    upRenderQueue();
+    document.getElementById('up-processing').style.display='none';
+    document.getElementById('up-result-file').textContent='// error: '+e.message;
+  }
+  // Process next in queue
+  setTimeout(upProcessNext, 300);
+}
+
+function upRetry(id){
+  const item=upQueue.find(i=>i.id===id);
+  if(!item)return;
+  item.status='queued';item.error=null;
+  upRenderQueue();
+  if(upQueue.filter(i=>i.status==='processing').length===0) upProcessNext();
+}
+
+function upShowResult(id){
+  const item=upQueue.find(i=>i.id===id);
+  if(!item||!item.parsed)return;
+  upCurrentParsed=item.parsed;
+  const p=item.parsed;
+  document.getElementById('up-processing').style.display='none';
+  document.getElementById('up-result-file').textContent='// '+item.name;
+  const SM2={pursue:{label:'Pursue Now',color:'#f97316'},highpot:{label:'Pipeline',color:'#4fc3f7'},watch:{label:'Watch',color:'#a78bfa'},future:{label:'Future',color:'#6b7280'}};
+  const sm=SM2[p.status]||SM2.future;
+  document.getElementById('up-r-label').textContent=p.label||'—';
+  document.getElementById('up-r-geo').textContent=p.geo||'—';
+  document.getElementById('up-r-fund').textContent=p.fundSize||'—';
+  document.getElementById('up-r-fund2').textContent=p.fundSize||'—';
+  document.getElementById('up-r-badge').textContent=sm.label;
+  document.getElementById('up-r-badge').style.cssText=`background:${sm.color}18;color:${sm.color};border:1px solid ${sm.color}40;font-size:9px`;
+  document.getElementById('up-r-timeline').textContent=p.timeline||'—';
+  document.getElementById('up-r-standing').textContent=p.standing||'—';
+  document.getElementById('up-r-readiness').textContent=(p.readiness||0)+'%';
+  document.getElementById('up-r-readiness-bar').style.width=(p.readiness||0)+'%';
+  document.getElementById('up-r-urgency').textContent=(p.urgency||0)+'%';
+  document.getElementById('up-r-urgency-bar').style.width=(p.urgency||0)+'%';
+  document.getElementById('up-r-desc').textContent=p.desc||'';
+  // Actions
+  const actEl=document.getElementById('up-r-actions');
+  actEl.innerHTML=(p.actions||[]).map(a=>`<div class="up-action-row"><div class="up-action-dot"></div><div>${a.t||a}</div></div>`).join('');
+  // Contacts
+  const cEl=document.getElementById('up-r-contacts');
+  if(p.contacts&&p.contacts.length){
+    cEl.style.display='flex';
+    cEl.innerHTML='<div class="up-field-label" style="margin-bottom:6px">Contacts</div>'
+      +p.contacts.map(c=>`<div class="up-contact-row">${c.name||''}${c.role?' · '+c.role:''}${c.email?' · <span style=\'color:var(--cyan)\'>'+(c.email)+'</span>':''}</div>`).join('');
+  } else {cEl.style.display='none';}
+  // Metrics
+  const mEl=document.getElementById('up-r-metrics');
+  mEl.innerHTML=(p.metrics||[]).map(m=>`<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--textD)"><span>${m.k}</span><span style="color:var(--text)">${m.v}</span></div>`).join('');
+  document.getElementById('up-result-panel').classList.add('visible');
+}
+
+function upAddToGlobe(){
+  if(!upCurrentParsed)return;
+  const p={...upCurrentParsed};
+  const anchors={pursue:[0.0,0.7,0.7],highpot:[0.7,0.3,-0.6],watch:[-0.7,-0.2,-0.7],future:[0.0,-0.9,0.4]};
+  const anc=anchors[p.status]||anchors.future;
+  const jitter=()=>(Math.random()-0.5)*0.6;
+  const nx=anc[0]+jitter(),ny=anc[1]+jitter(),nz=anc[2]+jitter();
+  const nm=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+  p.id='custom_'+uid();p.x=nx/nm;p.y=ny/nm;p.z=nz/nm;p.size=1.0+Math.random()*0.4;
+  grants.push(p);saveGrants();rebuildGlobe();updateStats();
+  // Switch to globe and select the new node
+  switchView('globe');
+  setTimeout(()=>selectGrant(p.id),300);
+  document.getElementById('up-add-btn').textContent='✓ ADDED TO GLOBE';
+  document.getElementById('up-add-btn').disabled=true;
 }
 
 init();
