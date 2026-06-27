@@ -310,6 +310,10 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   <div class="lock-title">Grant Intelligence System // v8.0</div>
   <div class="lock-input-wrap">
     <input id="lock-input" type="password" placeholder="enter password" autocomplete="off" />
+    <div style="width:100%;border-top:1px solid var(--border);margin:6px 0"></div>
+    <div style="font-size:8px;letter-spacing:2px;color:var(--textF);text-align:left;width:100%;margin-bottom:2px">ANTHROPIC API KEY (for document upload)</div>
+    <input id="lock-apikey" type="password" placeholder="sk-ant-..." autocomplete="off" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:8px 14px;border-radius:4px;outline:none;width:220px;letter-spacing:1px" />
+    <div style="font-size:8px;color:var(--textF);letter-spacing:1px;text-align:center">optional — only needed for AI document analysis</div>
     <button id="lock-btn">Unlock</button>
     <div class="lock-err" id="lock-err"></div>
   </div>
@@ -579,15 +583,18 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 // ══════════════════════════════════════════════════
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec';
-const ANTHROPIC_API_KEY = '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';
+// API key — stored in sessionStorage only, never in code
+const getApiKey=()=>sessionStorage.getItem('gb_apikey')||'';
 
 // Direct Anthropic API call — bypasses Apps Script CORS limitation
 async function callClaude(messages, maxTokens=1500){
+  const key=getApiKey();
+  if(!key)throw new Error('No API key — enter your Anthropic key at the login screen');
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
+      'x-api-key': getApiKey(),
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true',
     },
@@ -1849,6 +1856,11 @@ function init(){
     const vHash=Array.from(new Uint8Array(vBuf)).map(b=>b.toString(16).padStart(2,'0')).join('');
     if(vHash===CORRECT){
       sessionStorage.setItem('gb_auth',CORRECT);
+      // Save API key to sessionStorage if provided (never stored anywhere else)
+      const apiKeyEl=document.getElementById('lock-apikey');
+      if(apiKeyEl&&apiKeyEl.value.trim().startsWith('sk-ant')){
+        sessionStorage.setItem('gb_apikey',apiKeyEl.value.trim());
+      }
       document.getElementById('lock-screen').classList.add('hidden');
     } else {
       const inp=document.getElementById('lock-input');
