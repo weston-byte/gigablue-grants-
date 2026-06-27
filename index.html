@@ -350,6 +350,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
     <button class="nav-btn active" onclick="switchView('globe')" id="nav-globe">◎ Globe</button>
     <button class="nav-btn" onclick="switchView('repo')" id="nav-repo">≡ Repository</button>
     <button class="nav-btn" onclick="switchView('upload')" id="nav-upload">⊕ Upload</button>
+    <button class="nav-btn" id="nav-apikey" onclick="showApiKeyPrompt()" style="margin-left:auto;font-size:8px;letter-spacing:1px;padding:6px 12px" title="Set Anthropic API key">⚙ API Key</button>
   </nav>
 
   <!-- Mobile back-to-globe button -->
@@ -1845,7 +1846,38 @@ function init(){
 
   const stored=sessionStorage.getItem('gb_auth');
   if(stored===CORRECT){
-    document.getElementById('lock-screen').classList.add('hidden');
+    // Already authenticated — but check if API key is set
+    if(!sessionStorage.getItem('gb_apikey')){
+      // Show a minimal API key prompt instead of full lock screen
+      document.getElementById('lock-screen').innerHTML=`
+        <div class="lock-logo">◎ Gigablue</div>
+        <div class="lock-title">Enter Anthropic API Key</div>
+        <div style="font-size:8px;color:var(--textF);letter-spacing:1px;margin-top:-8px;margin-bottom:4px;text-align:center">required for AI document analysis</div>
+        <div class="lock-input-wrap">
+          <input id="lock-apikey2" type="password" placeholder="sk-ant-..." autocomplete="off"
+            style="background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:8px 14px;border-radius:4px;outline:none;width:260px;letter-spacing:1px" />
+          <button id="lock-btn2" style="background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;padding:8px 24px;border-radius:4px;cursor:pointer">Save Key</button>
+          <button onclick="document.getElementById('lock-screen').classList.add('hidden')" 
+            style="background:transparent;border:none;color:var(--textF);font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px">skip — use Globe only</button>
+          <div class="lock-err" id="lock-err2"></div>
+        </div>`;
+      document.getElementById('lock-btn2').addEventListener('click',()=>{
+        const v=document.getElementById('lock-apikey2').value.trim();
+        if(v.startsWith('sk-ant')){
+          sessionStorage.setItem('gb_apikey',v);
+          document.getElementById('lock-screen').classList.add('hidden');
+        } else {
+          document.getElementById('lock-err2').textContent='// key must start with sk-ant-';
+          setTimeout(()=>{document.getElementById('lock-err2').textContent='';},2000);
+        }
+      });
+      document.getElementById('lock-apikey2').addEventListener('keydown',e=>{
+        if(e.key==='Enter') document.getElementById('lock-btn2').click();
+      });
+      document.getElementById('lock-apikey2').focus();
+    } else {
+      document.getElementById('lock-screen').classList.add('hidden');
+    }
     return;
   }
 
@@ -1876,6 +1908,24 @@ function init(){
 })();
 
 // ── Mobile globe collapse ──
+function showApiKeyPrompt(){
+  const current=sessionStorage.getItem('gb_apikey')||'';
+  const hint=current?'current: '+current.slice(0,12)+'...':'no key set';
+  const key=window.prompt('Enter your Anthropic API key ('+hint+')\n\nGet one at console.anthropic.com/settings/keys');
+  if(key===null)return; // cancelled
+  if(key.trim().startsWith('sk-ant')){
+    sessionStorage.setItem('gb_apikey',key.trim());
+    document.getElementById('nav-apikey').style.color='#34d399';
+    document.getElementById('nav-apikey').textContent='⚙ Key ✓';
+    setTimeout(()=>{
+      document.getElementById('nav-apikey').style.color='';
+      document.getElementById('nav-apikey').textContent='⚙ API Key';
+    },2000);
+  } else if(key.trim()){
+    alert('Invalid key — must start with sk-ant-');
+  }
+}
+
 function mobileCollapse(){
   if(window.innerWidth>700)return;
   document.getElementById('globe-panel').classList.add('collapsed');
