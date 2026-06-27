@@ -579,6 +579,29 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 // ══════════════════════════════════════════════════
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec';
+const ANTHROPIC_API_KEY = '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';
+
+// Direct Anthropic API call — bypasses Apps Script CORS limitation
+async function callClaude(messages, maxTokens=1500){
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      messages,
+    }),
+  });
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  const data = await resp.json();
+  if(data.error) throw new Error(data.error.message||'API error');
+  return data.content?.map(c=>c.text||'').join('').trim().replace(/```json\n?|```/g,'').trim();
+}
 const SYNC_INTERVAL_MS = 2 * 60 * 60 * 1000;
 
 const SM={
@@ -1441,11 +1464,7 @@ async function handleFile(file){
     }
     msgContent.push({type:'text',text:'Extract grant/funding information. Return ONLY valid JSON with no markdown fences:\n{"label":"short grant name (max 6 words)","geo":"country or region","status":"pursue|highpot|watch|future","fundSize":"amount or range","timeline":"deadline or timeline","readiness":50,"urgency":50,"desc":"2-3 sentence description relevant to marine CDR","standing":"current engagement status","actions":[{"t":"action item","u":true}],"contacts":[{"name":"name","role":"role","email":"email"}],"metrics":[{"k":"metric","v":"value"}]}'});
     setStage('parsing with AI...');
-    const resp=await fetch('https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:msgContent}]})});
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error.message||'API error');
-    const raw=data.content?.map(c=>c.text||'').join('').trim().replace(/```json\n?|```/g,'').trim();
+    const raw=await callClaude([{role:'user',content:msgContent}],1500);
     if(!raw)throw new Error('empty AI response');
     const parsed=JSON.parse(raw);
     if(!parsed.label)throw new Error('could not extract grant data');
@@ -2068,14 +2087,7 @@ async function upProcessNext(){
 }`});
 
     setStage('running AI analysis...');
-    const resp=await fetch('https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:msgContent}]})
-    });
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error.message||'API error');
-    const raw=data.content?.map(c=>c.text||'').join('').trim().replace(/```json\n?|```/g,'').trim();
+    const raw=await callClaude([{role:'user',content:msgContent}],2000);
     if(!raw)throw new Error('empty AI response');
     const parsed=JSON.parse(raw);
     if(!parsed.label)throw new Error('could not parse grant data');
