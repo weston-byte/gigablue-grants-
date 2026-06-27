@@ -205,6 +205,44 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 #lock-btn:hover{background:rgba(79,195,247,0.1)}
 .lock-err{font-size:9px;letter-spacing:2px;color:var(--red);font-family:'Courier New',monospace;min-height:14px}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── Nav bar ── */
+#main-nav{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);background:var(--bg1);flex-shrink:0;padding:0 16px}
+#main-nav{gap:4px;padding:6px 12px}
+.nav-btn{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--textD);font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;padding:8px 18px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;white-space:nowrap;font-weight:700}
+.nav-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--borderB)}
+.nav-btn.active{background:rgba(79,195,247,0.12);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 8px rgba(79,195,247,0.15)}
+
+/* ── Repository view ── */
+#repo-view{display:none;flex:1;overflow:hidden;flex-direction:column}
+#repo-view.visible{display:flex}
+.repo-filters{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg1);flex-wrap:wrap;flex-shrink:0}
+.repo-filter-label{font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase;white-space:nowrap}
+.repo-filter{background:var(--bg2);border:1px solid var(--border);color:var(--textD);font-family:'Courier New',monospace;font-size:9px;padding:4px 8px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s}
+.repo-filter.active{background:rgba(79,195,247,0.12);border-color:var(--cyan);color:var(--cyan)}
+.repo-filter-sep{width:1px;height:16px;background:var(--border);flex-shrink:0}
+.repo-sort{background:var(--bg2);border:1px solid var(--border);color:var(--textD);font-family:'Courier New',monospace;font-size:9px;padding:4px 8px;border-radius:3px;cursor:pointer;margin-left:auto}
+.repo-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.repo-row{display:grid;grid-template-columns:1fr 120px 140px 80px 70px;align-items:center;gap:12px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent}
+.repo-row:hover{background:var(--bg2);border-color:var(--borderB)}
+.repo-row.selected{background:var(--bg2);border-left-color:var(--cyan)}
+.repo-row-label{font-size:11px;color:var(--text);font-family:'Courier New',monospace;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.repo-row-geo{font-size:9px;color:var(--textD);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.repo-row-fund{font-size:9px;color:var(--textD);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.repo-row-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border-radius:2px;font-size:8px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.repo-row-bar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;width:100%}
+.repo-row-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.repo-col-hdr{display:grid;grid-template-columns:1fr 120px 140px 80px 70px;gap:12px;padding:6px 14px;margin-bottom:2px}
+.repo-col-hdr span{font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase}
+.repo-source-tag{font-size:8px;letter-spacing:1px;padding:1px 5px;border-radius:2px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);color:#34d399;margin-left:6px}
+.repo-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--textF);font-size:9px;letter-spacing:2px}
+@media(max-width:700px){
+  .repo-row{grid-template-columns:1fr 80px 60px}
+  .repo-row-fund,.repo-row-bar{display:none}
+  .repo-col-hdr{grid-template-columns:1fr 80px 60px}
+  .repo-col-hdr span:nth-child(n+4){display:none}
+  .repo-filters{gap:5px}
+}
 </style>
 </head>
 <body>
@@ -244,11 +282,49 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
     </div>
   </div>
 
+
+  <!-- Nav bar -->
+  <nav id="main-nav">
+    <button class="nav-btn active" onclick="switchView('globe')" id="nav-globe">◎ Globe</button>
+    <button class="nav-btn" onclick="switchView('repo')" id="nav-repo">≡ Repository</button>
+  </nav>
+
   <!-- Mobile back-to-globe button -->
   <button id="back-to-globe" onclick="mobileBackToGlobe()">↑ back to globe</button>
 
   <!-- Body -->
   <div class="body" id="body-el">
+
+
+    <!-- Repository view -->
+    <div id="repo-view">
+      <div class="repo-filters" id="repo-filters">
+        <span class="repo-filter-label">Source:</span>
+        <button class="repo-filter active" data-filter="source" data-val="all" onclick="repoFilter(this)">All</button>
+        <button class="repo-filter" data-filter="source" data-val="pipeline" onclick="repoFilter(this)">Pipeline</button>
+        <button class="repo-filter" data-filter="source" data-val="discovery" onclick="repoFilter(this)">Discovery</button>
+        <div class="repo-filter-sep"></div>
+        <span class="repo-filter-label">Region:</span>
+        <div id="repo-geo-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        <div class="repo-filter-sep"></div>
+        <span class="repo-filter-label">Status:</span>
+        <div id="repo-status-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        <select class="repo-sort" id="repo-sort" onchange="renderRepo()">
+          <option value="urgency">↓ Urgency</option>
+          <option value="readiness">↓ Readiness</option>
+          <option value="label">A–Z Name</option>
+          <option value="geo">A–Z Region</option>
+        </select>
+      </div>
+      <div class="repo-col-hdr">
+        <span>Grant / Programme</span>
+        <span>Region</span>
+        <span>Fund Size</span>
+        <span>Status</span>
+        <span>Readiness</span>
+      </div>
+      <div class="repo-list" id="repo-list"></div>
+    </div>
 
     <!-- Globe panel (unified canvas) -->
     <div class="globe-panel" id="globe-panel" style="width:55%">
@@ -1197,28 +1273,49 @@ uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'))
 uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
 fileInp.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
 async function handleFile(file){
-  document.getElementById('upload-inner').innerHTML='<div style="font-size:10px;color:#4fc3f7;letter-spacing:1px">// PARSING WITH AI...</div>';
+  const ui=document.getElementById('upload-inner');
+  ui.innerHTML='<div style="font-size:10px;color:#4fc3f7;letter-spacing:1px;line-height:1.8">// reading file...<br><span id="upload-stage">preparing</span></div>';
+  const setStage=s=>{const el=document.getElementById('upload-stage');if(el)el.textContent=s;};
   try{
-    const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('read fail'));r.readAsDataURL(file);});
     const isPDF=/\.pdf$/i.test(file.name),isImg=/\.(png|jpg|jpeg|webp)$/i.test(file.name);
-    const mt=isPDF?'application/pdf':isImg?'image/png':'text/plain';
-    const content=[];
-    if(isPDF||isImg)content.push({type:isPDF?'document':'image',source:{type:'base64',media_type:mt,data:b64}});
-    else content.push({type:'text',text:'Document content: '+atob(b64).slice(0,8000)});
-    content.push({type:'text',text:'Extract grant/funding information. Return ONLY valid JSON (no markdown):\n{"label":"short name","geo":"country/region","status":"pursue|highpot|watch|future","fundSize":"fund size","timeline":"key timeline","readiness":0-100,"urgency":0-100,"desc":"2-3 sentence description","standing":"current engagement status","actions":[{"t":"action item","u":true/false}],"metrics":[{"k":"label","v":"value"}]}'});
-    const resp=await fetch('https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content}]})});
+    const isTxt=/\.(txt|md)$/i.test(file.name);
+    const msgContent=[];
+    if(isPDF||isImg){
+      setStage('encoding...');
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('read fail'));r.readAsDataURL(file);});
+      const mt=isPDF?'application/pdf':'image/png';
+      msgContent.push({type:isPDF?'document':'image',source:{type:'base64',media_type:mt,data:b64}});
+    } else {
+      setStage('reading text...');
+      const text=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read fail'));r.readAsText(file);});
+      msgContent.push({type:'text',text:'Document content:\n'+text.slice(0,12000)});
+    }
+    msgContent.push({type:'text',text:'Extract grant/funding information. Return ONLY valid JSON with no markdown fences:\n{"label":"short grant name (max 6 words)","geo":"country or region","status":"pursue|highpot|watch|future","fundSize":"amount or range","timeline":"deadline or timeline","readiness":50,"urgency":50,"desc":"2-3 sentence description relevant to marine CDR","standing":"current engagement status","actions":[{"t":"action item","u":true}],"contacts":[{"name":"name","role":"role","email":"email"}],"metrics":[{"k":"metric","v":"value"}]}'});
+    setStage('parsing with AI...');
+    const resp=await fetch('https://script.google.com/macros/s/AKfycby3-0jL0MNloITStNpoMOz0IJhtxl5g2hCLVKYFhxcEk642sufZQPeqw9Lue1D2MOdd/exec',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:msgContent}]})});
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
     const data=await resp.json();
-    const raw=data.content?.map(c=>c.text||'').join('').trim().replace(/```json|```/g,'').trim();
+    if(data.error)throw new Error(data.error.message||'API error');
+    const raw=data.content?.map(c=>c.text||'').join('').trim().replace(/```json\n?|```/g,'').trim();
+    if(!raw)throw new Error('empty AI response');
     const parsed=JSON.parse(raw);
-    parsed.id='custom_'+uid();parsed.x=(Math.random()-0.5)*1.8;parsed.y=(Math.random()-0.5)*1.8;parsed.z=(Math.random()-0.5)*1.8;parsed.size=1.0+Math.random()*0.4;
+    if(!parsed.label)throw new Error('could not extract grant data');
+    const anchors={pursue:[0.0,0.7,0.7],highpot:[0.7,0.3,-0.6],watch:[-0.7,-0.2,-0.7],future:[0.0,-0.9,0.4]};
+    const anc=anchors[parsed.status]||anchors.future;
+    const jitter=()=>(Math.random()-0.5)*0.6;
+    const nx=anc[0]+jitter(),ny=anc[1]+jitter(),nz=anc[2]+jitter();
+    const nm=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+    parsed.id='custom_'+uid();parsed.x=nx/nm;parsed.y=ny/nm;parsed.z=nz/nm;parsed.size=1.0+Math.random()*0.4;parsed.emailedAt=Date.now();
     grants.push(parsed);saveGrants();rebuildGlobe();selectGrant(parsed.id);updateStats();
-    document.getElementById('upload-inner').innerHTML=`<div style="font-size:9px;color:#34d399;letter-spacing:1px">// ADDED: ${parsed.label.toUpperCase()}</div>`;
-    setTimeout(()=>{document.getElementById('upload-inner').innerHTML='<div class="upload-plus">+</div><div class="upload-t">DROP GRANT DOCUMENT · ADD VECTOR</div><div class="upload-s">PDF · TXT · MD · PNG — parsed by AI</div>';},3000);
+    ui.innerHTML='<div style="font-size:9px;color:#34d399;letter-spacing:1px">'+String.fromCharCode(10003)+' ADDED: '+parsed.label.toUpperCase()+'</div>';
+    setTimeout(()=>{ui.innerHTML='<div class="upload-plus">+</div><div class="upload-t">DROP GRANT DOCUMENT · ADD VECTOR</div><div class="upload-s">PDF · TXT · MD · PNG — parsed by AI</div>';},3000);
   }catch(e){
-    document.getElementById('upload-inner').innerHTML=`<div style="font-size:9px;color:#f87171;line-height:1.5">Parse failed: ${e.message}</div>`;
-    setTimeout(()=>{document.getElementById('upload-inner').innerHTML='<div class="upload-plus">+</div><div class="upload-t">DROP GRANT DOCUMENT · ADD VECTOR</div><div class="upload-s">PDF · TXT · MD · PNG — parsed by AI</div>';},4000);
+    console.error('Upload error:',e);
+    ui.innerHTML='<div style="font-size:9px;color:#f87171;line-height:1.6">✗ '+e.message+'</div>';
+    setTimeout(()=>{ui.innerHTML='<div class="upload-plus">+</div><div class="upload-t">DROP GRANT DOCUMENT · ADD VECTOR</div><div class="upload-s">PDF · TXT · MD · PNG — parsed by AI</div>';},5000);
   }
 }
+
 
 
 function buildSphere(radius,statusColor){
@@ -1608,6 +1705,127 @@ function mobileBackToGlobe(){
   document.getElementById('globe-panel').classList.remove('collapsed');
   document.getElementById('back-to-globe').classList.remove('visible');
   document.getElementById('globe-panel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Repository view ──
+let repoFilters={source:'all', geo:'all', status:'all'};
+
+const STATUS_META={
+  pursue: {label:'Pursue Now', color:'#f97316'},
+  highpot:{label:'Pipeline',   color:'#4fc3f7'},
+  watch:  {label:'Watch',      color:'#a78bfa'},
+  future: {label:'Future',     color:'#6b7280'},
+};
+
+function switchView(view){
+  const isRepo=view==='repo';
+  document.getElementById('repo-view').classList.toggle('visible', isRepo);
+  document.getElementById('globe-panel').style.display=isRepo?'none':'';
+  document.getElementById('right-panel').style.display=isRepo?'none':'';
+  document.getElementById('disc-panel').style.display='none';
+  document.getElementById('divider').style.display=isRepo?'none':'';
+  document.getElementById('back-to-globe').classList.remove('visible');
+  document.getElementById('nav-globe').classList.toggle('active',!isRepo);
+  document.getElementById('nav-repo').classList.toggle('active', isRepo);
+  if(isRepo){buildRepoFilters();renderRepo();}
+  if(!isRepo&&window.innerWidth>700){
+    document.getElementById('globe-panel').style.width='55%';
+    document.getElementById('right-panel').style.display='flex';
+  }
+}
+
+function buildRepoFilters(){
+  // Geo filters from all data
+  const allGeos=[...new Set([...grants.map(g=>g.geo),...DISC_SEED.map(g=>g.region)])].sort();
+  const geoEl=document.getElementById('repo-geo-filters');
+  geoEl.innerHTML='<button class="repo-filter active" data-filter="geo" data-val="all" onclick="repoFilter(this)">All</button>'
+    +allGeos.map(g=>`<button class="repo-filter" data-filter="geo" data-val="${g}" onclick="repoFilter(this)">${g}</button>`).join('');
+  
+  // Status filters
+  const statEl=document.getElementById('repo-status-filters');
+  statEl.innerHTML='<button class="repo-filter active" data-filter="status" data-val="all" onclick="repoFilter(this)">All</button>'
+    +Object.entries(STATUS_META).map(([k,v])=>`<button class="repo-filter" data-filter="status" data-val="${k}" onclick="repoFilter(this)" style="border-color:${v.color}40;color:${v.color}">${v.label}</button>`).join('')
+    +'<button class="repo-filter" data-filter="status" data-val="discovery" onclick="repoFilter(this)" style="border-color:#34d39940;color:#34d399">Discovery</button>';
+}
+
+function repoFilter(btn){
+  const filter=btn.dataset.filter, val=btn.dataset.val;
+  repoFilters[filter]=val;
+  // Deactivate siblings in same group
+  btn.closest('div,nav').querySelectorAll(`[data-filter="${filter}"]`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRepo();
+}
+
+function renderRepo(){
+  const sort=document.getElementById('repo-sort').value;
+  
+  // Build unified list from pipeline + discovery
+  let rows=[];
+  
+  if(repoFilters.source!=='discovery'){
+    grants.forEach(g=>{
+      if(repoFilters.geo!=='all'&&g.geo!==repoFilters.geo)return;
+      if(repoFilters.status!=='all'&&repoFilters.status!=='discovery'&&g.status!==repoFilters.status)return;
+      if(repoFilters.status==='discovery')return;
+      rows.push({
+        id:g.id, label:g.label, geo:g.geo, fundSize:g.fundSize||'—',
+        status:g.status, readiness:g.readiness||0, urgency:g.urgency||0,
+        source:'pipeline', emailedAt:g.emailedAt||null,
+        color:(STATUS_META[g.status]||STATUS_META.future).color,
+        statusLabel:(STATUS_META[g.status]||STATUS_META.future).label,
+      });
+    });
+  }
+  
+  if(repoFilters.source!=='pipeline'){
+    DISC_SEED.forEach(g=>{
+      if(repoFilters.geo!=='all'&&g.region!==repoFilters.geo)return;
+      if(repoFilters.status!=='all'&&repoFilters.status!=='discovery')return;
+      rows.push({
+        id:g.id, label:g.label, geo:g.region, fundSize:g.fundSize||'—',
+        status:'discovery', readiness:g.readiness||50, urgency:g.urgency||50,
+        source:'discovery', emailedAt:g.emailedAt||null,
+        color:'#34d399', statusLabel:'Discovery',
+      });
+    });
+  }
+  
+  // Sort
+  rows.sort((a,b)=>{
+    if(sort==='urgency')return b.urgency-a.urgency;
+    if(sort==='readiness')return b.readiness-a.readiness;
+    if(sort==='label')return a.label.localeCompare(b.label);
+    if(sort==='geo')return a.geo.localeCompare(b.geo);
+    return 0;
+  });
+  
+  const list=document.getElementById('repo-list');
+  if(!rows.length){list.innerHTML='<div class="repo-empty">// no grants match filters</div>';return;}
+  
+  list.innerHTML=rows.map(r=>`
+    <div class="repo-row${r.id===selectedId?' selected':''}" onclick="repoSelectGrant('${r.id}','${r.source}')" style="border-left-color:${r.color}">
+      <div>
+        <div class="repo-row-label">${r.label}${r.emailedAt?'<span class="repo-source-tag">✉ email</span>':''}</div>
+        <div class="repo-row-geo">${r.geo}</div>
+      </div>
+      <div class="repo-row-geo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.geo}</div>
+      <div class="repo-row-fund">${r.fundSize}</div>
+      <div><span class="repo-row-badge" style="background:${r.color}18;color:${r.color};border:1px solid ${r.color}40">${r.statusLabel}</span></div>
+      <div>
+        <div class="repo-row-bar"><div class="repo-row-bar-fill" style="width:${r.readiness}%;background:${r.color}"></div></div>
+        <div style="font-size:8px;color:var(--textF);margin-top:2px;letter-spacing:1px">${r.readiness}%</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function repoSelectGrant(id, source){
+  // Switch to globe view and select the node
+  switchView('globe');
+  if(source==='pipeline'){selectGrant(id);}
+  else{selectDiscGrant(id);}
+  // Highlight the row briefly before switching
 }
 
 init();
