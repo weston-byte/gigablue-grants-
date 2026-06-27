@@ -1372,8 +1372,8 @@ function buildUnifiedGlobe(){
   globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.42,Math.PI/2));
   globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.28,0,Math.PI/2));
   /* Outer discovery shell rings */
-  globeMainGroup.add(makeRing(2.8,0x0a3a2a,0.25));
-  globeMainGroup.add(makeRing(2.8,0x0a3a2a,0.14,Math.PI/2));
+  globeMainGroup.add(makeRing(2.2,0x0a3a2a,0.25));
+  globeMainGroup.add(makeRing(2.2,0x0a3a2a,0.14,Math.PI/2));
   /* Grid */
   const gp=[];for(let i=-3;i<=3;i+=0.6){gp.push(i,-2.4,-3,i,-2.4,3,-3,-2.4,i,3,-2.4,i);}
   const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(gp,3));
@@ -1383,10 +1383,14 @@ function buildUnifiedGlobe(){
 
   const raycaster=new THREE.Raycaster();
 
-  /* ── Pipeline nodes (inner shell r=1.55) ── */
+  /* ── Pipeline nodes (inner shell r=1.28) ── */
+  const pipelineAnchors={pursue:[0.0,0.7,0.7],highpot:[0.7,0.3,-0.6],watch:[-0.7,-0.2,-0.7],future:[0.0,-0.9,0.4]};
   grants.forEach((g,i)=>{
     const s=SM[g.status];
-    const pos=new THREE.Vector3(g.x*1.55,g.y*1.55,g.z*1.55);
+    const anc=pipelineAnchors[g.status]||[g.x,g.y,g.z];
+    const bx=g.x+(anc[0]-g.x)*0.55, by=g.y+(anc[1]-g.y)*0.55, bz=g.z+(anc[2]-g.z)*0.55;
+    const bm=Math.sqrt(bx*bx+by*by+bz*bz)||1;
+    const pos=new THREE.Vector3(bx/bm*1.28,by/bm*1.28,bz/bm*1.28);
     const r=(g.size||1)*0.1;
     const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
     globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0.08})));
@@ -1407,13 +1411,18 @@ function buildUnifiedGlobe(){
     globeMainGroup.add(sp);
   });
 
-  /* ── Discovery nodes (outer shell r=2.8) ── */
+  /* ── Discovery nodes (outer shell r=2.2) ── */
   DISC_SEED.forEach((g,i)=>{
     const typeColor=(DISC_TYPES[g.type]||DISC_TYPES.nondilutive).color;
     const col=new THREE.Color(typeColor);
     const phi=Math.acos(1-2*(i+0.5)/DISC_SEED.length);
     const theta=(Math.PI*(1+Math.sqrt(5)))*(i+0.5);
-    const pos=new THREE.Vector3(Math.sin(phi)*Math.cos(theta)*2.8,Math.cos(phi)*2.8,Math.sin(phi)*Math.sin(theta)*2.8);
+    // All discovery nodes cluster together on the upper-left outer shell
+    const discAnchor=[-0.55,0.65,0.52]; // single group anchor — upper left front
+    const rx=Math.sin(phi)*Math.cos(theta), ry=Math.cos(phi), rz=Math.sin(phi)*Math.sin(theta);
+    const dx=rx+(discAnchor[0]-rx)*0.72, dy=ry+(discAnchor[1]-ry)*0.72, dz=rz+(discAnchor[2]-rz)*0.72;
+    const dm2=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+    const pos=new THREE.Vector3(dx/dm2*2.2,dy/dm2*2.2,dz/dm2*2.2);
     const r=0.07*(g.size||1);
     const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
     globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.04})));
