@@ -1830,15 +1830,11 @@ function buildUnifiedGlobe(){
       pos=new THREE.Vector3(dx/dm2*2.2,dy/dm2*2.2,dz/dm2*2.2);
     }
     const r=0.07*(g.size||1);
-    const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
-    let discLineStart;
-    if(globeMode==='geo'){
-      const dcoords=GEO_COORDS[g.region];
-      discLineStart=dcoords?latLonToVec3(dcoords[0],dcoords[1],1.83):new THREE.Vector3(0,0,0);
-    } else {
-      discLineStart=new THREE.Vector3(0,0,0);
-    }
-    const spGeo=new THREE.BufferGeometry().setFromPoints([discLineStart,pos]);
+    const discLineStart=(()=>{
+      if(globeMode==='geo'){const dc=GEO_COORDS[g.region];return dc?latLonToVec3(dc[0],dc[1],1.84):new THREE.Vector3(0,0,0);}
+      return new THREE.Vector3(0,0,0);
+    })();
+    const spGeo=new THREE.BufferGeometry().setFromPoints([discLineStart,pos.clone()]);
     globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:globeMode==='geo'?0.25:0.04})));
     /* Octahedron shape for discovery nodes */
     const sg=new THREE.Group();
