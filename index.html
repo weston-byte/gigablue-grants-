@@ -183,9 +183,6 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   #globe-mount{min-height:55vw;max-height:260px}
   .globe-panel.collapsed #globe-mount{min-height:0;max-height:80px}
   .globe-panel.collapsed .globe-foot{display:none}
-  /* Back-to-globe button — only visible on mobile when a node is selected */
-  #back-to-globe{display:none;width:100%;padding:8px;background:var(--bg2);border:none;border-bottom:1px solid var(--border);color:var(--cyan);font-family:"Courier New",monospace;font-size:9px;letter-spacing:2px;cursor:pointer;text-align:center}
-  #back-to-globe.visible{display:block}
   .right{width:100%!important;min-width:0;border-left:none;border-top:1px solid var(--border)}
   .analytics-grid{grid-template-columns:1fr 1fr}
   .tabs{overflow-x:auto}
@@ -312,6 +309,152 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .globe-mode-toggle{position:absolute;top:10px;right:10px;z-index:10;display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2px;box-shadow:0 0 12px rgba(0,0,0,0.4)}
 .gmt-btn{background:transparent;border:none;color:var(--textF);font-family:"Courier New",monospace;font-size:8px;letter-spacing:1px;padding:5px 12px;border-radius:16px;cursor:pointer;transition:all 0.25s;white-space:nowrap}
 .gmt-btn.active{background:var(--cyan);color:#020810;font-weight:700}
+.ta{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;line-height:1.6;padding:10px 12px;resize:vertical;outline:none;transition:border-color 0.15s;letter-spacing:0.3px}
+.ta:focus{border-color:var(--cyan)}
+.ta::placeholder{color:var(--textF);font-style:italic}
+
+/* ── Geo map country popup ── */
+#geo-popup{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--bg1);border:1px solid var(--borderB);border-radius:6px;
+  min-width:260px;max-width:320px;z-index:20;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 0 1px rgba(79,195,247,0.15);
+  overflow:hidden;
+}
+#geo-popup.visible{display:block}
+.geo-pop-hdr{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,42,74,0.5);
+}
+.geo-pop-title{font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--cyan);text-transform:uppercase}
+.geo-pop-close{background:none;border:none;color:var(--textF);cursor:pointer;
+  font-size:14px;line-height:1;padding:0;transition:color 0.15s}
+.geo-pop-close:hover{color:#fff}
+.geo-pop-body{padding:6px 0;max-height:280px;overflow-y:auto}
+.geo-pop-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;cursor:pointer;transition:background 0.12s;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.geo-pop-row:last-child{border-bottom:none}
+.geo-pop-row:hover{background:rgba(79,195,247,0.06)}
+.geo-pop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.geo-pop-label{flex:1;font-family:'Courier New',monospace;font-size:10px;
+  color:var(--text);letter-spacing:0.5px;line-height:1.3}
+.geo-pop-status{font-family:'Courier New',monospace;font-size:8px;
+  letter-spacing:1px;color:var(--textF);text-transform:uppercase}
+.geo-pop-count{font-family:'Courier New',monospace;font-size:8px;
+  color:var(--cyan);letter-spacing:1px;padding:2px 6px;
+  border:1px solid rgba(79,195,247,0.3);border-radius:3px}
+
+
+/* ── Geo globe popup ── */
+#geo-popup{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:linear-gradient(160deg,#071828 0%,#040f18 100%);
+  border:1px solid rgba(79,195,247,0.2);border-radius:8px;
+  min-width:270px;max-width:330px;z-index:20;display:none;
+  box-shadow:0 12px 48px rgba(0,0,0,0.7),0 0 0 1px rgba(79,195,247,0.08),inset 0 1px 0 rgba(255,255,255,0.04);
+  overflow:hidden;backdrop-filter:blur(8px);
+}
+#geo-popup.visible{display:block}
+.geo-pop-hdr{
+  padding:10px 14px 9px;border-bottom:1px solid rgba(79,195,247,0.12);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(79,195,247,0.05);
+}
+.geo-pop-title{font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;
+  color:var(--cyan);text-transform:uppercase;font-weight:700}
+.geo-pop-close{background:none;border:1px solid rgba(255,255,255,0.1);color:var(--textF);
+  cursor:pointer;font-size:11px;line-height:1;padding:2px 6px;border-radius:3px;
+  transition:all 0.15s}
+.geo-pop-close:hover{border-color:var(--cyan);color:var(--cyan)}
+.geo-pop-section{padding:5px 0 2px;
+  font-family:'Courier New',monospace;font-size:7px;letter-spacing:2.5px;
+  color:rgba(79,195,247,0.45);text-transform:uppercase;
+  padding:6px 14px 3px;border-top:1px solid rgba(255,255,255,0.04)}
+.geo-pop-section:first-child{border-top:none}
+.geo-pop-body{max-height:300px;overflow-y:auto;padding-bottom:4px}
+.geo-pop-body::-webkit-scrollbar{width:3px}
+.geo-pop-body::-webkit-scrollbar-track{background:transparent}
+.geo-pop-body::-webkit-scrollbar-thumb{background:rgba(79,195,247,0.2);border-radius:2px}
+.geo-pop-row{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 14px;cursor:pointer;transition:background 0.1s;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.geo-pop-row:last-child{border-bottom:none}
+.geo-pop-row:hover{background:rgba(79,195,247,0.07)}
+.geo-pop-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 4px currentColor}
+.geo-pop-label{flex:1;font-family:'Courier New',monospace;font-size:10px;
+  color:var(--text);letter-spacing:0.3px;line-height:1.3}
+.geo-pop-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.geo-pop-status{font-family:'Courier New',monospace;font-size:7px;
+  letter-spacing:1px;color:var(--textF);text-transform:uppercase}
+.geo-pop-prog{width:36px;height:2px;background:rgba(255,255,255,0.08);border-radius:1px;overflow:hidden}
+.geo-pop-prog-fill{height:100%;border-radius:1px;transition:width 0.3s}
+
+/* ── Progress bar on grant panel ── */
+.progress-section{padding:16px 0 8px}
+.progress-label{font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;
+  color:var(--textF);text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between}
+.progress-track{width:100%;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;
+  cursor:pointer;position:relative;margin-bottom:4px}
+.progress-track:hover{background:rgba(255,255,255,0.1)}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.2s;
+  background:linear-gradient(90deg,var(--cyan),#38bdf8)}
+.progress-steps{display:flex;justify-content:space-between;margin-top:6px}
+.prog-step{font-family:'Courier New',monospace;font-size:7px;letter-spacing:1px;
+  color:var(--textF);cursor:pointer;padding:3px 6px;border-radius:2px;
+  transition:all 0.15s;border:1px solid transparent}
+.prog-step:hover,.prog-step.active{border-color:var(--cyan);color:var(--cyan);background:rgba(79,195,247,0.08)}
+
+/* ── Add Grant view ── */
+#add-view{display:none;padding:24px;overflow-y:auto;max-height:calc(100vh - 60px)}
+#add-view.visible{display:block}
+.add-form{max-width:720px;margin:0 auto}
+.add-form-hdr{font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:20px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-grid.full{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-label{font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;
+  color:var(--textF);text-transform:uppercase}
+.form-label span{color:var(--cyan);font-size:7px}
+.form-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);
+  font-family:'Courier New',monospace;font-size:11px;padding:9px 12px;border-radius:4px;
+  outline:none;transition:border-color 0.15s;width:100%;box-sizing:border-box}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(79,195,247,0.08)}
+.form-input::placeholder{color:var(--textF);opacity:0.6}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234fc3f7'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.6}
+.form-section-title{font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;
+  color:rgba(79,195,247,0.5);text-transform:uppercase;margin:20px 0 12px;
+  padding-top:16px;border-top:1px solid rgba(255,255,255,0.04)}
+.progress-init{display:flex;align-items:center;gap:10px;margin-top:6px}
+.progress-init-track{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;
+  cursor:pointer;position:relative}
+.progress-init-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),#38bdf8);transition:width 0.15s}
+.progress-init-val{font-family:'Courier New',monospace;font-size:11px;color:var(--cyan);
+  min-width:32px;text-align:right}
+.form-actions{display:flex;gap:10px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.btn-primary{background:var(--cyan);color:#020810;font-family:'Courier New',monospace;
+  font-size:9px;letter-spacing:2px;font-weight:700;padding:11px 24px;border:none;
+  border-radius:4px;cursor:pointer;text-transform:uppercase;transition:all 0.2s}
+.btn-primary:hover{background:#38bdf8;transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--textF);font-family:'Courier New',monospace;
+  font-size:9px;letter-spacing:2px;padding:11px 18px;border:1px solid var(--border);
+  border-radius:4px;cursor:pointer;text-transform:uppercase;transition:all 0.2s}
+.btn-secondary:hover{border-color:var(--textD);color:var(--text)}
+.form-success{display:none;padding:12px 16px;background:rgba(52,211,153,0.08);
+  border:1px solid rgba(52,211,153,0.25);border-radius:4px;color:#34d399;
+  font-family:'Courier New',monospace;font-size:10px;margin-top:12px}
+.form-success.visible{display:block}
+
 </style>
 </head>
 <body>
@@ -365,11 +508,10 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
     <button class="nav-btn active" onclick="switchView('globe')" id="nav-globe">◎ Globe</button>
     <button class="nav-btn" onclick="switchView('repo')" id="nav-repo">≡ Repository</button>
     <button class="nav-btn" onclick="switchView('upload')" id="nav-upload">⊕ Upload</button>
+    <button class="nav-btn" onclick="switchView('add')" id="nav-add">✚ Add Grant</button>
     <button class="nav-btn" id="nav-apikey" onclick="showApiKeyPrompt()" style="margin-left:auto;font-size:8px;letter-spacing:1px;padding:6px 12px" title="Set Anthropic API key">⚙ API Key</button>
   </nav>
 
-  <!-- Mobile back-to-globe button -->
-  <button id="back-to-globe" onclick="mobileBackToGlobe()">↑ back to globe</button>
 
   <!-- Body -->
   <div class="body" id="body-el">
@@ -502,6 +644,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
       <div class="corner c-tl"></div>
       <div class="corner c-tr"></div>
       <div id="globe-mount">
+        <div id="geo-popup"><div class="geo-pop-hdr"><span class="geo-pop-title" id="geo-pop-title">GRANTS</span><button class="geo-pop-close" onclick="closeGeoPopup()">✕</button></div><div class="geo-pop-body" id="geo-pop-body"></div></div>
         <div class="globe-mode-toggle">
           <button class="gmt-btn active" id="gmt-cluster" onclick="setGlobeMode('cluster')">◎ CLUSTER</button>
           <button class="gmt-btn" id="gmt-geo" onclick="setGlobeMode('geo')">⊕ GEO MAP</button>
@@ -596,6 +739,124 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
   </div>
 </div>
 
+
+    <!-- Add Grant view -->
+    <div id="add-view">
+      <div class="add-form">
+        <div class="add-form-hdr">
+          <span>✚ ADD NEW GRANT VECTOR</span>
+          <span style="color:var(--textF);font-size:7px;letter-spacing:1px">* REQUIRED</span>
+        </div>
+        <div class="form-section-title">Core Information</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Grant / Programme Name <span>*</span></label>
+            <input class="form-input" id="af-label" type="text" placeholder="e.g. Horizon Europe — CDR Call" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Geography <span>*</span></label>
+            <select class="form-input form-select" id="af-geo">
+              <option value="">— Select —</option>
+              <option>New Zealand</option><option>Australia</option><option>Chile</option>
+              <option>European Union</option><option>Ireland</option><option>Japan</option>
+              <option>Alaska / USA</option><option>USA</option><option>Global</option>
+              <option>Multi-country</option><option>New Zealand / Pacific</option><option>Chile / Global</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Status <span>*</span></label>
+            <select class="form-input form-select" id="af-status">
+              <option value="pursue">Pursue Now</option><option value="highpot">High Potential</option>
+              <option value="watch">Watch</option><option value="future">Future</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Fund Size / Value</label>
+            <input class="form-input" id="af-fundSize" type="text" placeholder="e.g. $500K–$2M over 2 years" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Timeline / Deadline</label>
+            <input class="form-input" id="af-timeline" type="text" placeholder="e.g. Application open Q3 2026" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Application Readiness (0–100)</label>
+            <input class="form-input" id="af-readiness" type="number" min="0" max="100" value="50" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Urgency Score (0–100)</label>
+            <input class="form-input" id="af-urgency" type="number" min="0" max="100" value="50" />
+          </div>
+        </div>
+        <div class="form-grid full">
+          <div class="form-field">
+            <label class="form-label">Description <span>*</span></label>
+            <textarea class="form-input form-textarea" id="af-desc" rows="4" placeholder="Describe the grant programme, eligibility, and strategic fit for Gigablue…"></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Current Standing / Status Update</label>
+            <textarea class="form-input form-textarea" id="af-standing" rows="3" placeholder="What is the current state of engagement?"></textarea>
+          </div>
+        </div>
+        <div class="form-section-title">Analytics</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Success Probability (%)</label>
+            <input class="form-input" id="af-successProb" type="number" min="0" max="100" placeholder="0–100" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Competition Level</label>
+            <select class="form-input form-select" id="af-competition">
+              <option value="">— Select —</option>
+              <option>Low</option><option>Medium</option><option>High</option><option>Very High</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">ROI Score</label>
+            <select class="form-input form-select" id="af-roiScore">
+              <option value="">— Select —</option>
+              <option>Very High</option><option>High</option><option>Medium</option><option>Low</option><option>Multiplier</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Strategic Fit (0–100)</label>
+            <input class="form-input" id="af-strategicFit" type="number" min="0" max="100" placeholder="0–100" />
+          </div>
+        </div>
+        <div class="form-section-title">Progress Tracking</div>
+        <div class="form-grid full">
+          <div class="form-field">
+            <label class="form-label">Initial Progress — <span style="color:var(--textF)">drag or click to set</span></label>
+            <div class="progress-init" style="margin-top:8px">
+              <div class="progress-init-track" id="af-prog-track">
+                <div class="progress-init-fill" id="af-prog-fill" style="width:0%"></div>
+              </div>
+              <span class="progress-init-val" id="af-prog-val">0%</span>
+            </div>
+            <input type="hidden" id="af-progress" value="0" />
+          </div>
+        </div>
+        <div class="form-section-title">Action Items & Key Dependencies</div>
+        <div class="form-grid full">
+          <div class="form-field">
+            <label class="form-label">Key Actions — <span style="color:var(--textF)">one per line</span></label>
+            <textarea class="form-input form-textarea" id="af-actions" rows="4" placeholder="Commission specialist tax advice&#10;Confirm visit dates&#10;Begin drafting project description…"></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Key Dependencies — <span style="color:var(--textF)">one per line</span></label>
+            <textarea class="form-input form-textarea" id="af-deps" rows="3" placeholder="Application schedule received&#10;Partner capability confirmed…"></textarea>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Risk Flags — <span style="color:var(--textF)">comma separated</span></label>
+            <input class="form-input" id="af-risks" type="text" placeholder="Timeline tight, No entity, Competitive field" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" onclick="submitAddGrant()">✚ Add to Grant Intelligence System</button>
+          <button class="btn-secondary" onclick="clearAddForm()">Clear Form</button>
+        </div>
+        <div class="form-success" id="af-success">✓ Grant added successfully — switching to globe view.</div>
+      </div>
+    </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 
@@ -643,473 +904,14 @@ const SM={
   future: {label:'Future 2027+',color:'#4b5563',bg:'rgba(75,85,99,0.12)',border:'rgba(75,85,99,0.3)'},
 };
 
-const SEED=[
-  {id:'investchile',label:'InvestChile / ProChile',geo:'Chile',status:'pursue',fundSize:'Facilitation — no direct grant',timeline:'Book now · Santiago visit',readiness:85,urgency:95,desc:"Foreign investor facilitation and legitimisation gateway. Maria has already initiated a ProChile referral on Gigablue's behalf. Being in their portfolio signals to every Chilean government body and partner that Gigablue is a serious, vetted foreign investor. Costs nothing but time.",standing:"Maria has taken action — ProChile referral submitted. In-person Santiago meeting proposed. Status: awaiting date confirmation from Gigablue side. This is a non-negotiable diary item for the upcoming Chile visit.",actions:[{t:"Confirm Santiago visit dates with Maria immediately",u:true},{t:"Ask Maria to lock in InvestChile/ProChile meeting as non-negotiable diary item",u:true},{t:"Prepare concise investment narrative: jobs created, IP in Chile, science partnerships, commercialisation potential",u:false},{t:"Ask Maria what materials ProChile expects at first meeting",u:false},{t:"Frame Gigablue as strategic marine tech investor, not a one-off research visitor",u:false}],metrics:[{k:'Priority rank',v:'#1 of 12'},{k:'Lead time',v:'Days'},{k:'Blocker',v:'Dates unconfirmed'},{k:'Maria status',v:'Referral sent'}],analytics:{successProb:88,competition:'None',strategicFit:96,roiScore:'Multiplier',compType:'Facilitation',risks:['Date confirmation delay','Visa/travel logistics'],dependencies:['Maria Vergara confirm dates','Santiago visit itinerary finalised','Gigablue investment narrative prepared']},x:0.0,y:0.8,z:0.6,size:1.5},
-  {id:'ley_id',label:'Ley I+D Tax Credit',geo:'Chile',status:'pursue',fundSize:'~$450K–$1.05M recovery (15–35% of $3M pilot)',timeline:'Engage Chilean tax specialist this week',readiness:70,urgency:90,desc:"Chilean R&D tax credit (Ley 20.241) — retroactive recovery on qualifying expenditure. At a ~$3M pilot budget, even a conservative 15% credit is material. Maria confirms it applies retroactively and recommends commissioning specialist advice immediately.",standing:"Identified and recommended by Maria. No tax specialist engaged yet. Critical open question: does a foreign company spending in Chile qualify, or is a Chilean legal entity required?",actions:[{t:"Commission specialist Chilean tax advice immediately",u:true},{t:"Determine whether Chilean legal entity is required or foreign company qualifies",u:true},{t:"Map qualifying expenditure categories: lab, vessel time, instruments, R&D staff",u:false},{t:"Build tax credit into pilot budget as recovery line",u:false},{t:"Ask Maria for Big-4 or specialist I+D tax firm recommendation",u:false}],metrics:[{k:'Potential recovery',v:'$450K–$1.05M'},{k:'Credit rate',v:'15–35%'},{k:'Mechanism',v:'Retroactive'},{k:'Entity needed?',v:'TBC — urgent'}],analytics:{successProb:72,competition:'Low',strategicFit:90,roiScore:'High',compType:'Tax Recovery',risks:['Foreign entity eligibility unconfirmed','Specialist cost','Retroactive limits'],dependencies:['Chilean tax specialist engaged','Legal entity decision made','Qualifying expenditure categories mapped']},x:-0.9,y:0.5,z:0.8,size:1.35},
-  {id:'bilateral',label:'Embassy / Bilateral',geo:'Multi-country',status:'pursue',fundSize:'$200K–$2M depending on treaty and programme',timeline:'Map stakeholder nationalities this week',readiness:55,urgency:88,desc:"Chile holds bilateral climate and science cooperation treaties with multiple nations. Maria's most proactive unsolicited recommendation. For a NZ-headquartered company working on ocean CDR, the NZ–Chile bilateral is the primary vector, but UK, EU, and Australian channels may also apply.",standing:"Identified as high-priority by Maria. Not yet engaged with any embassy. NZ Embassy Santiago (MFAT), UK FCDO Science and Innovation Network, and EU–Chile Association Agreement all represent viable entry points.",actions:[{t:"Map Gigablue stakeholder nationalities vs Chile's active bilateral science/climate treaties",u:true},{t:"Contact NZ Embassy Santiago or MFAT science diplomacy team",u:true},{t:"Ask Maria: which country's embassy has been most active in marine/climate funding in Chile?",u:true},{t:"Identify UK/EU bilateral options",u:false},{t:"Cross-reference Bezos Earth Fund and Carbon180 as supplementary sources",u:false}],metrics:[{k:'NZ–Chile',v:'Primary vector'},{k:'UK FCDO SIN',v:'Active in region'},{k:'EU–Chile',v:'Horizon-eligible'},{k:'Maria intel',v:'Not yet asked'}],analytics:{successProb:60,competition:'Low',strategicFit:82,roiScore:'Medium',compType:'Diplomatic Grant',risks:['Multiple channels, unclear lead','Slow diplomatic timelines','Treaty eligibility not confirmed'],dependencies:['Stakeholder nationality mapping','MFAT science diplomacy contact identified','Maria bilateral intelligence gathered']},x:0.9,y:0.6,z:0.5,size:1.4},
-  {id:'fondef',label:'ANID / FONDEF',geo:'Chile',status:'highpot',fundSize:'$500K–$2M over 2–3 years (IDeA typical)',timeline:'Application window imminent — act now for 2027 outcome',readiness:45,urgency:80,desc:"ANID FONDEF IDeA is Chile's primary applied research grant — highly competitive, slow-moving. Maria has identified UCN (Universidad Católica del Norte) as a strong northern partner. Sub-Antarctic option via i-mar Research Center to be tested during site visit.",standing:"Maria has identified UCN as lead partner candidate. i-mar Research Center visit being arranged. ANID application schedule expected imminently — this sets the hard deadline. No draft project description started.",actions:[{t:"Confirm receipt of ANID application schedule from Maria",u:true},{t:"Begin drafting project description and scientific rationale now",u:true},{t:"Evaluate UCN as lead partner — request marine/oceanographic capability profile",u:false},{t:"Prepare i-mar Research Center visit agenda",u:false},{t:"Consider whether INACH MOU strengthens FONDEF application",u:false}],metrics:[{k:'Realistic outcome',v:'2027'},{k:'Partner (north)',v:'UCN — confirmed'},{k:'Partner (south)',v:'i-mar — TBC'},{k:'App window',v:'Imminent'}],analytics:{successProb:42,competition:'High',strategicFit:85,roiScore:'High',compType:'Research Grant',risks:['Very competitive field','No draft started','Timeline extremely tight'],dependencies:['ANID application schedule received','UCN capability profile confirmed','i-mar visit completed','INACH MOU pursued']},x:-0.6,y:-0.4,z:1.0,size:1.25},
-  {id:'icrag',label:'iCRAG / SFI Ireland',geo:'Ireland',status:'highpot',fundSize:'€1M–€4M (SFI Research Centre partnership)',timeline:'Proposal submitted — awaiting response',readiness:75,urgency:40,desc:"Research partnership with iCRAG (SFI Research Centre for Applied Geosciences) for North Atlantic MCFS deployment. Ireland's 880,000km² EEZ provides deep Atlantic access, nutrient-rich upwelling zones, and port infrastructure at Cork, Galway, and Dublin.",standing:"Formal research grant briefing submitted June 2026 (Gigablue × iCRAG). Proposal covers 4+ joint publications, RV Celtic Explorer co-use, 2 funded PhDs and 1 postdoc. EU ETS integration from 2028 as commercial anchor. No response received yet.",actions:[{t:"Follow up with iCRAG contact if no response within 3 weeks",u:false},{t:"Identify named iCRAG researchers in sedimentary basins and ocean-floor processes",u:false},{t:"Prepare for technical briefing at iCRAG's request — have NIWA validation data ready",u:false},{t:"Explore Marine Institute Ireland as additional co-applicant",u:false},{t:"Map EU ETS regulatory pathway to demonstrate commercial anchor",u:false}],metrics:[{k:'EEZ access',v:'880,000 km²'},{k:'PhD positions',v:'2 funded'},{k:'RV access',v:'Celtic Explorer'},{k:'Commercial anchor',v:'EU ETS 2028'}],analytics:{successProb:55,competition:'Medium',strategicFit:78,roiScore:'High',compType:'Research Partnership',risks:['No response yet','EU regulatory dependency','Long academic timelines'],dependencies:['iCRAG response received','NIWA validation data package prepared','Marine Institute Ireland assessed as co-applicant']},x:1.1,y:-0.3,z:0.3,size:1.3},
-  {id:'inach',label:'INACH Antarctic Inst.',geo:'Chile',status:'watch',fundSize:'Logistical / in-kind — research access value',timeline:'Follow up with Maria within 10 days',readiness:30,urgency:55,desc:"Instituto Antartico Chileno — sub-Antarctic field access, logistical infrastructure, and institutional credibility. A formal INACH partnership, even an informal MOU, would significantly strengthen the FONDEF application.",standing:"Identified as strategic partner by Maria. Updated INACH programme list awaited. No direct contact established. Independent research needed to identify named researchers whose work overlaps with MCFS environmental monitoring.",actions:[{t:"Ask Maria for INACH list within 10 days if not received",u:true},{t:"Research INACH's current Southern Ocean science programme independently",u:false},{t:"Identify named INACH researchers with overlap in marine biology and CDR-adjacent work",u:false},{t:"Consider pursuing informal MOU to strengthen FONDEF application",u:false}],metrics:[{k:'Value type',v:'Access + credibility'},{k:'Maria status',v:'Gathering intel'},{k:'FONDEF uplift',v:'Significant'},{k:'Contact made',v:'None yet'}],analytics:{successProb:38,competition:'Low',strategicFit:70,roiScore:'Indirect',compType:'Partnership/MOU',risks:['No direct contact yet','Value is indirect — access only','Depends on Maria intel'],dependencies:['INACH programme list from Maria','Named researcher identified','MOU drafted and submitted']},x:-1.1,y:-0.2,z:-0.4,size:1.0},
-  {id:'sa_gov',label:'South Australia Gov',geo:'Australia',status:'watch',fundSize:'R&I Fund + co-investment facilitation (TBC)',timeline:'Q&A submitted — awaiting response',readiness:60,urgency:35,desc:"Engagement with South Australia Government on Net Zero Strategy 2024–30, Blue Carbon Strategy (Action 4.3), Research & Innovation Fund (Action 14.2), and centre of excellence in green technologies (Action 5.5).",standing:"Comprehensive strategic briefing delivered June 2026. 10-question Q&A response record submitted and marked Ready for Export. Awaiting SA government response.",actions:[{t:"Follow up if no response within 4 weeks of Q&A submission",u:false},{t:"Identify specific SA government contacts in DSD and DEW",u:false},{t:"Prepare Research & Innovation Fund (Action 14.2) eligibility assessment",u:false},{t:"Explore ACCU scheme new methodology pathway",u:false}],metrics:[{k:'Q&A status',v:"Submitted June '26"},{k:'CCS target',v:'3Mt by 2030'},{k:'Renewables',v:'74% → 100% 2027'},{k:'Key action',v:'14.2 R&I Fund'}],analytics:{successProb:45,competition:'Medium',strategicFit:72,roiScore:'Medium',compType:'Government R&I',risks:['Government procurement slow','Eligibility criteria unconfirmed','Dependent on ministerial interest'],dependencies:['SA govt response received','DSD/DEW contact identified','Action 14.2 eligibility assessed']},x:0.2,y:-0.9,z:0.6,size:1.15},
-  {id:'vic_gov',label:'Victoria Government',geo:'Australia',status:'watch',fundSize:'Future industry investment facilitation (TBC)',timeline:'Strategic briefing submitted — awaiting response',readiness:55,urgency:30,desc:"Engagement with Victorian Government on Climate Change Strategy 2026–30 — future industry development, blue economy expansion, Southern Ocean access, and research partnerships.",standing:"Comprehensive strategic briefing delivered June 2026. Positions Gigablue as natural partner for Victoria's Southern Ocean blue economy development. Awaiting Victorian government response.",actions:[{t:"Follow up if no response within 4 weeks",u:false},{t:"Identify contacts in Dept of Jobs, Skills, Industry and Regions (DJSIR)",u:false},{t:"Prepare Victoria-specific investment narrative — emphasise Southern Ocean access",u:false},{t:"Explore intersection with clean hydrogen and advanced manufacturing frameworks",u:false}],metrics:[{k:'Net zero target',v:'Earliest in AU'},{k:'Strategy',v:'2026–30 active'},{k:'Ocean access',v:'Southern Ocean'},{k:'Briefing',v:"Submitted June '26"}],analytics:{successProb:38,competition:'Medium',strategicFit:65,roiScore:'Low-Med',compType:'Government Facilitation',risks:['Broader policy focus reduces alignment','No named contacts yet','Slow government response cycle'],dependencies:['VIC govt response received','DJSIR contact identified','Victoria-specific investment narrative prepared']},x:0.7,y:-0.7,z:-0.5,size:1.1},
-  {id:'bezos',label:'Bezos Earth Fund',geo:'Global',status:'watch',fundSize:'$10M–$50M (typical mCDR portfolio range)',timeline:'Identified — not yet engaged',readiness:25,urgency:30,desc:"Bezos Earth Fund is a major philanthropic funder of ocean-based carbon removal. Relevant as a blended finance source for the Chile pilot or as a co-investor alongside Series A.",standing:"Identified as relevant funder. No engagement initiated. No introduction pathway identified. Would require a warm introduction through XPRIZE network, Puro.earth, or Series A investors.",actions:[{t:"Map introduction pathways: XPRIZE network, Puro.earth advisory board, Series A investors",u:false},{t:"Research Bezos Earth Fund mCDR portfolio — identify overlap with Gigablue",u:false},{t:"Prepare Bezos Earth Fund-specific pitch section",u:false},{t:"Identify programme officer responsible for ocean CDR",u:false}],metrics:[{k:'Fund focus',v:'Ocean CDR'},{k:'Typical ticket',v:'$10M–$50M'},{k:'Intro pathway',v:'Not identified'},{k:'Priority',v:'Supplementary'}],analytics:{successProb:20,competition:'High',strategicFit:74,roiScore:'Very High',compType:'Philanthropic',risks:['No warm intro pathway','Highly competitive programme','Long due diligence cycle'],dependencies:['Warm introduction secured','mCDR portfolio overlap identified','Programme officer identified']},x:-0.4,y:0.3,z:-1.1,size:1.1},
-  {id:'gore',label:'GORE / FIC-R Regional',geo:'Chile',status:'future',fundSize:'$100K–$500K (regional innovation fund)',timeline:'2027 cycle only — current semester allocated',readiness:10,urgency:10,desc:"Chilean regional government innovation funds (GORE/FIC-R). Current semester's funds are already being allocated. Most relevant regions: Magallanes and Los Lagos.",standing:"Not accessible in current cycle per Maria's assessment. Groundwork required: identify which Chilean region the field campaign anchors in.",actions:[{t:"Identify which region the field campaign anchors in: Magallanes or Los Lagos",u:false},{t:"Begin cultivating regional government relationship during pilot period",u:false},{t:"Document local economic benefits of pilot for 2027 application narrative",u:false}],metrics:[{k:'Current status',v:'Not accessible'},{k:'Cycle opens',v:'2027'},{k:'Key regions',v:'Magallanes / Los Lagos'},{k:'Action needed',v:'Build groundwork'}],analytics:{successProb:30,competition:'Low',strategicFit:55,roiScore:'Low',compType:'Regional Innovation',risks:['Not accessible this cycle','Region TBC','Low quantum'],dependencies:['Deployment region confirmed','Regional relationship developed','Local economic impact documented']},x:0.3,y:-0.5,z:-1.0,size:0.85},
-  {id:'crea_valida',label:'CORFO Crea y Valida',geo:'Chile',status:'future',fundSize:'$500K–$3M (commercialisation support)',timeline:'2028+ — requires operating pilot and active sales',readiness:5,urgency:5,desc:"CORFO Crea y Valida requires active sales and an operating pilot in Chile. Maria's ruling is unambiguous: Gigablue has neither. Hard eligibility criterion, not a positioning gap.",standing:"Definitively ruled out for current phase by Maria. Hard eligibility barrier: must have active sales in Chile and operating pilot.",actions:[{t:"Log as potential 2028+ instrument — no action required now",u:false},{t:"Ensure pilot design generates commercial validation evidence: revenue, customer letters, offtake agreements",u:false}],metrics:[{k:'Current status',v:'Not eligible'},{k:'Hard barrier',v:'Active sales required'},{k:'Entity needed',v:'Chilean legal entity'},{k:'Revisit',v:'Post-2028'}],analytics:{successProb:5,competition:'Medium',strategicFit:60,roiScore:'High (2028+)',compType:'Commercialisation',risks:['Hard ineligibility — active sales required','Requires Chilean legal entity','2+ year horizon'],dependencies:['Operating pilot in Chile','Active Chilean sales','Chilean legal entity established']},x:-0.8,y:-0.6,z:-0.7,size:0.8},
-  {id:'accu',label:'ACCU Scheme (AU)',geo:'Australia',status:'future',fundSize:'Market-based — A$35–65/tCO₂ credit price',timeline:'Exploratory — no timeline set',readiness:15,urgency:15,desc:"Australian Carbon Credit Unit scheme — exploring development of a new MCFS methodology. Interest declared in SA Q&A response. ACCU methodology development typically requires 18–36 months.",standing:"Interest declared in SA Government Q&A. No active pursuit begun. Puro.earth MCFS methodology provides a strong foundation for ACCU methodology development.",actions:[{t:"Assess whether SA or VIC government could sponsor ACCU methodology development",u:false},{t:"Identify CER (Clean Energy Regulator) contacts for preliminary scoping",u:false},{t:"Review ACCU methodology development pathway — 18–36 month lead time requires early initiation",u:false}],metrics:[{k:'Credit price',v:'A$35–65/tCO₂'},{k:'Dev timeline',v:'18–36 months'},{k:'Foundation',v:'Puro.earth MCFS'},{k:'Status',v:'Exploratory'}],analytics:{successProb:25,competition:'Low',strategicFit:68,roiScore:'High (long)',compType:'Market Mechanism',risks:['18–36 month methodology development','CER regulatory uncertainty','Market price volatility'],dependencies:['Government sponsor identified','CER scoping call completed','ACCU methodology development pathway mapped']},x:1.0,y:0.1,z:-0.8,size:0.85},
-  {id:'corfo_biotech',label:'CORFO Biotech Call',geo:'Chile',status:'highpot',fundSize:'CLP 500M–2,000M (~$550K–$2.2M)',timeline:'Active call — apply before window closes',readiness:40,urgency:75,
-  desc:"CORFO's Biotechnology and Life Sciences Investment Call targets applied research with commercial potential in sectors including marine biology, environmental biotechnology, and blue economy applications. Gigablue's MCFS substrate technology — microalgae cultivation on iron-oxide cotton substrate — sits squarely within marine biotechnology as defined under the call's eligible science categories.",
-  standing:"Call identified at corfo.gob.cl/sites/cpp/biotech-call/. No application started. Requires a Chilean university or research centre as co-applicant. UCN (already identified for FONDEF) is the strongest candidate. A single CORFO Biotech application could run in parallel with the FONDEF IDeA track.",
-  actions:[
-    {t:"Review full call bases and eligibility criteria at corfo.gob.cl/sites/cpp/biotech-call/",u:true},
-    {t:"Confirm application deadline from CORFO call portal",u:true},
-    {t:"Assess whether UCN qualifies as co-applicant under biotech call rules",u:true},
-    {t:"Map MCFS substrate science to eligible biotechnology categories in call bases",u:false},
-    {t:"Draft project abstract: marine biotech framing for MCFS phytoplankton cultivation",u:false},
-    {t:"Identify CORFO programme officer for biotech call — request pre-submission meeting",u:false}
-  ],
-  metrics:[{k:'Call type',v:'Biotechnology'},{k:'Co-applicant',v:'Chilean univ. req.'},{k:'Parallel track',v:'FONDEF IDeA'},{k:'Portal',v:'corfo.gob.cl'}],
-  analytics:{successProb:38,competition:'High',strategicFit:80,roiScore:'High',compType:'Applied Research',risks:['Highly competitive CORFO pool','Chilean co-applicant required','Application bases not yet reviewed','Timeline unconfirmed'],dependencies:['Call bases reviewed and deadline confirmed','UCN co-applicant eligibility confirmed','MCFS framed as marine biotechnology','Project abstract drafted']},
-  x:-0.3,y:0.6,z:-0.9,size:1.1}
-];
-
-
-
-const DISC_TYPES = {
-  nondilutive: {label:'Non-dilutive',color:'#34d399'},
-  dilutive:    {label:'Dilutive',color:'#a78bfa'},
-  blended:     {label:'Blended',color:'#fbbf24'},
-  partnership: {label:'Partnership',color:'#4fc3f7'},
+// ── Grant data loaded from server after authentication ──
+// SEED, DISC_SEED, DISC_TYPES are NOT embedded in this file.
+// They are fetched via authenticated Apps Script call.
+let grants=[], DISC_SEED=[], DISC_TYPES={
+  nondilutive:{label:'Non-dilutive',color:'#34d399'},
+  dilutive:   {label:'Dilutive / Watch',color:'#a78bfa'},
+  blended:    {label:'Blended',color:'#fbbf24'}
 };
-const DISC_SEED = [
-
-  // ── ALASKA ──
-  {id:'noaa_oar',label:'NOAA Ocean Acidification',geo:'Alaska / USA',region:'Alaska',type:'nondilutive',
-  fundSize:'$500K–$3M per award',deadline:'Rolling — annual solicitation Q4',
-  url:'https://oceanacidification.noaa.gov/GrantsandFunding.aspx',
-  desc:'NOAA Ocean Acidification Program funds research into ocean carbon chemistry, including CDR monitoring and verification in high-latitude systems. Alaska\'s naturally acidifying waters make this a strong fit for MCFS environmental monitoring data.',
-  fit:'MCFS generates continuous pCO₂, pH, and alkalinity data that directly addresses NOAA OAP monitoring priorities. The Alaska shelf upwelling zones are priority monitoring areas.',
-  actions:[
-    {t:'Download current NOAA OAP funding solicitation — confirm open call status',u:true},
-    {t:'Frame MCFS as a monitoring infrastructure play, not just CDR',u:true},
-    {t:'Identify NOAA OAP programme officer — target Dr. Libby Jewett or successor',u:false},
-    {t:'Connect with UAF (University of Alaska Fairbanks) as US co-applicant',u:false},
-    {t:'Map MCFS data outputs to NOAA OAP measurement priorities',u:false},
-  ],
-  contacts:[
-    {name:'Dr. Libby Jewett',role:'NOAA OAP Director (verify current)',email:'libby.jewett@noaa.gov',url:'https://oceanacidification.noaa.gov'},
-    {name:'UAF College of Fisheries',role:'Potential US co-applicant',url:'https://www.uaf.edu/cfos/'},
-  ],
-  process:[
-    {step:'Monitor NOAA grants.gov listings for annual OAP solicitation (typically Sept–Nov)',deadline:'Q4 annually'},
-    {step:'Submit Letter of Intent (LOI) — 2 pages, 30-day window',deadline:'~30 days after solicitation'},
-    {step:'Full proposal if LOI accepted — 15 pages + budget',deadline:'~60 days after LOI'},
-    {step:'Review period — 4–6 months'},
-    {step:'Award notification and negotiation'},
-  ],
-  x:1.1,y:0.7,z:0.2,size:1.2},
-
-  {id:'nsf_polar',label:'NSF Polar Programs',geo:'Alaska / USA',region:'Alaska',type:'nondilutive',
-  fundSize:'$300K–$1.5M (standard); up to $5M (large collaborative)',deadline:'Annual — varies by programme',
-  url:'https://www.nsf.gov/div/index.jsp?div=OPP',
-  desc:'NSF Office of Polar Programs funds Arctic and sub-Arctic marine science. OPP-Arctic Natural Sciences is the primary mechanism. MCFS phytoplankton dynamics in nutrient-limited Alaskan shelf waters represent a genuine scientific gap.',
-  fit:'NSF requires a US academic lead. UAF, WHOI, or Scripps could serve as PI institution. Gigablue contributes field infrastructure, substrate deployment, and commercial CDR verification expertise.',
-  actions:[
-    {t:'Identify NSF OPP programme officer for Arctic Natural Sciences',u:true},
-    {t:'Approach UAF or Scripps for US PI partnership',u:false},
-    {t:'Frame MCFS as hypothesis-testing field infrastructure — not commercial CDR',u:false},
-    {t:'Draft 1-page concept note for NSF programme officer feedback',u:false},
-  ],
-  contacts:[
-    {name:'NSF Office of Polar Programs',role:'Arctic Natural Sciences Programme',url:'https://www.nsf.gov/div/index.jsp?div=OPP'},
-    {name:'WHOI Ocean and Climate Change Institute',role:'Potential US PI institution',url:'https://www.whoi.edu/occi/'},
-  ],
-  process:[
-    {step:'Contact programme officer for informal pre-submission consultation',deadline:'Anytime'},
-    {step:'Submit 2-page concept paper if invited',deadline:'Variable'},
-    {step:'Full proposal — 15-page project description, full budget',deadline:'Annual deadline varies'},
-    {step:'Peer review — 6–9 months'},
-    {step:'Panel review and programme officer recommendation'},
-  ],
-  x:0.8,y:0.9,z:-0.2,size:1.1},
-
-  {id:'arpa_e',label:'ARPA-E CARBON CAPTURE',geo:'USA',region:'Alaska',type:'nondilutive',
-  fundSize:'$500K–$5M per project',deadline:'Open calls — monitor arpa-e.energy.gov',
-  url:'https://arpa-e.energy.gov/technologies/programs',
-  desc:'ARPA-E funds transformational energy technology including direct air capture and ocean CDR. The MARINER (Macroalgae Research Inspiring Novel Energy Resources) programme is a direct precedent. MCFS biophysical substrate approach aligns with ARPA-E\'s focus on breakthrough, high-risk/high-reward technology.',
-  fit:'Gigablue\'s cost trajectory ($3,967/ton → $1,840/ton by 2030) and novel substrate approach fit ARPA-E\'s transformational technology mandate. A US field partner (Alaska or Pacific coast) required.',
-  actions:[
-    {t:'Monitor arpa-e.energy.gov for open ocean CDR or carbon removal solicitations',u:true},
-    {t:'Identify ARPA-E programme director for ocean/marine CDR',u:false},
-    {t:'Develop US deployment partnership — Alaska or West Coast',u:false},
-    {t:'Prepare technology briefing package aligned with ARPA-E metrics (cost, scalability, speed)',u:false},
-  ],
-  contacts:[
-    {name:'ARPA-E Programme Directors',role:'Ocean/Carbon Technology',url:'https://arpa-e.energy.gov/about/program-directors'},
-    {name:'DOE Office of Fossil Energy',role:'Carbon Removal Programme',url:'https://www.energy.gov/fecm/carbon-dioxide-removal'},
-  ],
-  process:[
-    {step:'Monitor for open Funding Opportunity Announcements (FOAs) on ARPA-E website',deadline:'Ongoing'},
-    {step:'Attend ARPA-E Summit or programme-specific workshop if held',deadline:'Annual'},
-    {step:'Submit Concept Paper (4 pages) — first filter',deadline:'~30 days from FOA'},
-    {step:'Full Application if concept accepted (varies by programme)',deadline:'~60 days'},
-  ],
-  x:1.3,y:0.3,z:0.4,size:1.0},
-
-  // ── CHILE ──
-  {id:'minciencia_fondecyt',label:'FONDECYT Regular',geo:'Chile',region:'Chile',type:'nondilutive',
-  fundSize:'CLP 60M–120M/yr (~$65K–$130K/yr) × 3 years',deadline:'Annual — typically March',
-  url:'https://www.anid.cl/concursos/concurso/?id=901',
-  desc:'FONDECYT Regular is ANID\'s core individual researcher grant for applied and basic science. Unlike FONDEF (which requires commercial application), FONDECYT funds curiosity-driven science. A Chilean academic PI studying MCFS carbon export dynamics could access this funding with Gigablue as industrial partner.',
-  fit:'Lower quantum than FONDEF but faster turnaround and less competitive in niche marine science areas. Ideal for establishing Chilean academic footprint before FONDEF application.',
-  actions:[
-    {t:'Identify Chilean marine chemist or oceanographer for FONDECYT PI role',u:false},
-    {t:'Frame MCFS as novel phytoplankton ecology question — not CDR technology',u:false},
-    {t:'Approach PUCV (Pontificia Universidad Católica de Valparaíso) marine science department',u:false},
-    {t:'Check current FONDECYT Regular call dates at anid.cl',u:false},
-  ],
-  contacts:[
-    {name:'ANID Fondos de Investigación',role:'FONDECYT Programme Office',url:'https://www.anid.cl/'},
-    {name:'PUCV Escuela de Ciencias del Mar',role:'Marine science partner candidate',url:'https://www.pucv.cl/'},
-  ],
-  process:[
-    {step:'Chilean PI submits pre-proposal to ANID (Gigablue as associated partner)',deadline:'March annually'},
-    {step:'Peer review by international panel',deadline:'3–4 months'},
-    {step:'Award notification',deadline:'August'},
-    {step:'Project start — January following year'},
-  ],
-  x:-0.8,y:0.3,z:1.1,size:1.0},
-
-  {id:'corfo_cdr',label:'CORFO Innova + Scale-Up',geo:'Chile',region:'Chile',type:'nondilutive',
-  fundSize:'USD $200K–$2M (Innova); up to $5M (Scale-Up)',deadline:'Rolling — CORFO open calls',
-  url:'https://www.corfo.cl/sites/cpp/convocatorias',
-  desc:'CORFO\'s Innova programme funds technology commercialisation with market traction. Scale-Up targets companies with proven product-market fit expanding in Chile. Distinct from Crea y Valida (which requires active Chilean sales), Innova is accessible with a demonstrated technology and Chilean partner.',
-  fit:'Requires Chilean legal entity or partner. With UCN as co-applicant, Innova is accessible. The Puro.earth verification pathway and Changeblock offtake provide the commercial traction evidence required.',
-  actions:[
-    {t:'Review current CORFO Innova open calls at corfo.cl/convocatorias',u:true},
-    {t:'Assess whether Puro.earth verification + Changeblock offtake meets "market traction" threshold',u:false},
-    {t:'Confirm UCN willingness to be named Chilean entity for application',u:false},
-    {t:'Identify CORFO regional office — Antofagasta (northern Chile deployment)',u:false},
-  ],
-  contacts:[
-    {name:'CORFO Regional Antofagasta',role:'Northern Chile operations',url:'https://www.corfo.cl/sites/cpp/home'},
-    {name:'UCN Dirección de Investigación',role:'Co-applicant institution',url:'https://www.ucn.cl/'},
-  ],
-  process:[
-    {step:'Download open call bases from CORFO convocatorias portal',deadline:'Check quarterly'},
-    {step:'Submit Expression of Interest (EOI) — 5 pages',deadline:'Per call'},
-    {step:'Technical and commercial due diligence',deadline:'4–6 weeks'},
-    {step:'Full project proposal if EOI approved',deadline:'6–8 weeks'},
-    {step:'CORFO panel evaluation and award',deadline:'3–4 months total'},
-  ],
-  x:-1.2,y:0.1,z:0.7,size:1.15},
-
-  {id:'gef_chile',label:'GEF / UNDP Blue Economy',geo:'Chile / Global',region:'Chile',type:'nondilutive',
-  fundSize:'$1M–$10M (GEF-8 cycle)',deadline:'GEF-8 active — project identification phase',
-  url:'https://www.thegef.org/what-we-do/topics/ocean-and-fisheries',
-  desc:'The Global Environment Facility (GEF) funds ocean and fisheries projects through UNDP, UNEP, and World Bank. Chile is an eligible GEF recipient country. GEF-8 (2022–2026) has explicit ocean CDR and blue economy priorities. MCFS fits the "nature-based solutions for ocean carbon" window.',
-  fit:'GEF requires a government agency as lead applicant. SERNAPESCA (Chilean fisheries authority) or MMA (Ministerio del Medio Ambiente) would be the entry point. A formal government-to-government approach is needed.',
-  actions:[
-    {t:'Identify GEF National Focal Point in Chile — typically Ministerio del Medio Ambiente',u:true},
-    {t:'Engage UNDP Chile office as GEF implementing agency',u:false},
-    {t:'Draft Project Identification Form (PIF) for GEF CEO endorsement',u:false},
-    {t:'Map MCFS to GEF-8 priority areas: ocean health, climate mitigation, biodiversity',u:false},
-  ],
-  contacts:[
-    {name:'UNDP Chile',role:'GEF Implementing Agency',url:'https://www.undp.org/chile'},
-    {name:'GEF National Focal Point Chile',role:'MMA International Affairs',url:'https://www.mma.gob.cl/'},
-    {name:'GEF Secretariat',role:'Ocean & Fisheries focal area',url:'https://www.thegef.org'},
-  ],
-  process:[
-    {step:'Identify GEF focal point and UNDP Chile project officer',deadline:'Immediate'},
-    {step:'Submit Project Identification Form (PIF) — 10 pages with government endorsement',deadline:'GEF-8 window closing 2026'},
-    {step:'GEF CEO endorsement review',deadline:'3–4 months'},
-    {step:'Full Project Document (ProDoc) development',deadline:'6–9 months'},
-    {step:'GEF Council approval and UNDP implementation agreement'},
-  ],
-  x:-0.5,y:0.8,z:0.9,size:1.3},
-
-  // ── EUROPEAN UNION ──
-  {id:'horizon_msca',label:'Horizon Europe — MSCA',geo:'European Union',region:'EU',type:'nondilutive',
-  fundSize:'€150K–€250K per fellow (postdoc); up to €2M (Staff Exchanges)',
-  deadline:'MSCA Postdoctoral Fellowships: September annual; Staff Exchanges: variable',
-  url:'https://marie-sklodowska-curie-actions.ec.europa.eu/',
-  desc:'Marie Skłodowska-Curie Actions fund researcher mobility. MSCA Industrial Postdoctoral Fellowships place researchers in industry for 2 years — Gigablue could host an EU-based postdoc working on MCFS carbon flux modelling. Staff Exchanges enable personnel secondments between Gigablue and EU research institutions.',
-  fit:'No EU entity required for hosting an MSCA Industrial fellow. NZ-based companies are eligible as non-academic hosts. iCRAG (Ireland) or AWI (Alfred-Wegener-Institut, Germany) as academic partner.',
-  actions:[
-    {t:'Review MSCA Industrial Postdoctoral Fellowship 2026 call — deadline typically September',u:true},
-    {t:'Identify prospective MSCA fellow — early-career EU marine scientist',u:false},
-    {t:'Confirm AWI or NIOZ as European academic partner for co-supervision',u:false},
-    {t:'Draft two-year research plan: MCFS carbon export flux in sub-polar waters',u:false},
-  ],
-  contacts:[
-    {name:'AWI (Alfred-Wegener-Institut)',role:'German polar marine research, MSCA partner',url:'https://www.awi.de/en/'},
-    {name:'NIOZ Royal Netherlands Institute',role:'Marine chemistry, MSCA partner',url:'https://www.nioz.nl/en'},
-    {name:'MSCA National Contact Points',role:'Per EU member state',url:'https://marie-sklodowska-curie-actions.ec.europa.eu/'},
-  ],
-  process:[
-    {step:'Fellow identifies host organisation (Gigablue) and submits application',deadline:'September annually'},
-    {step:'Gigablue provides hosting statement and research environment description',deadline:'With application'},
-    {step:'European Commission evaluation — 8 months',deadline:'Review period'},
-    {step:'Grant Agreement with EU Research Executive Agency (REA)',deadline:'If successful'},
-  ],
-  x:0.2,y:0.4,z:-1.2,size:1.2},
-
-  {id:'horizon_eic',label:'Horizon Europe — EIC Accelerator',geo:'European Union',region:'EU',type:'dilutive',
-  fundSize:'Up to €2.5M grant + €15M equity investment',deadline:'Rolling cuts — 3x per year',
-  url:'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en',
-  desc:'The European Innovation Council Accelerator funds deep tech SMEs with EU nexus. Gigablue could qualify via its iCRAG partnership (Irish nexus) or by establishing an EU subsidiary. The blended finance model (grant + equity) is unique — EIC takes equity stake at favorable terms.',
-  fit:'Requires EU nexus — Irish entity via iCRAG partnership or a new IE/NL holding structure. Ocean CDR is explicitly listed as an EIC priority under Green Deal climate tech. The €15M equity component is dilutive but at EIC-standard terms (fair market, minority stake).',
-  actions:[
-    {t:'Assess whether iCRAG partnership creates sufficient EU nexus for EIC eligibility',u:true},
-    {t:'Engage EIC NCP (National Contact Point) in Ireland via Enterprise Ireland',u:false},
-    {t:'Determine if establishing an Irish subsidiary is warranted for EIC access',u:false},
-    {t:'Prepare EIC pitch deck — specific format required (10 slides, video pitch)',u:false},
-  ],
-  contacts:[
-    {name:'Enterprise Ireland',role:'EIC National Contact Point for Ireland',url:'https://www.enterprise-ireland.com/en/funding-supports/company/eic-accelerator/'},
-    {name:'EIC Programme Office',role:'European Innovation Council',url:'https://eic.ec.europa.eu/'},
-    {name:'EIC Fund',role:'Equity investment arm',url:'https://eic.ec.europa.eu/eic-fund_en'},
-  ],
-  process:[
-    {step:'Register on EIC portal — obtain EU Login',deadline:'Anytime'},
-    {step:'Submit Step 1: Short application (pitch deck + 5-page description + video)',deadline:'Quarterly cutoffs'},
-    {step:'Evaluation — 4–6 weeks'},
-    {step:'Step 2 (if invited): Full application + remote interview',deadline:'~8 weeks after Step 1'},
-    {step:'EIC jury interview — in-person Brussels or remote',deadline:'~12 weeks total'},
-    {step:'Grant Agreement + EIC Fund equity term sheet',deadline:'If successful'},
-  ],
-  x:-0.3,y:0.2,z:-1.3,size:1.25},
-
-  {id:'life_programme',label:'EU LIFE Programme',geo:'European Union',region:'EU',type:'nondilutive',
-  fundSize:'€1M–€8M (LIFE Climate Action)',deadline:'Annual — typically April',
-  url:'https://cinea.ec.europa.eu/programmes/life_en',
-  desc:'EU LIFE Programme funds environmental and climate action projects. LIFE Climate Action specifically targets innovative CDR approaches. EU member state co-applicant required. Gigablue + iCRAG (Ireland) or a German research partner could structure a viable consortium.',
-  fit:'MCFS as a nature-based CDR solution aligns with LIFE\'s "innovative approaches to increase carbon sinks" priority. Ireland is an EU member state — iCRAG partnership provides the EU nexus. Projects must demonstrate EU added value.',
-  actions:[
-    {t:'Review LIFE 2026 call for proposals at CINEA website',u:true},
-    {t:'Confirm iCRAG as EU lead applicant — Gigablue as associated partner',u:false},
-    {t:'Map MCFS to LIFE Climate Action priority: "Innovative approaches to CDR"',u:false},
-    {t:'Identify LIFE National Contact Point in Ireland',u:false},
-  ],
-  contacts:[
-    {name:'CINEA (Climate, Infrastructure & Environment)',role:'LIFE Programme Management',url:'https://cinea.ec.europa.eu/programmes/life_en'},
-    {name:'LIFE NCP Ireland',role:'Enterprise Ireland / Dept of Environment',url:'https://www.gov.ie/en/service/life-programme/'},
-    {name:'iCRAG',role:'EU lead applicant candidate',url:'https://www.icrag-centre.org/'},
-  ],
-  process:[
-    {step:'Submit Concept Note (10 pages) — online via LIFE portal',deadline:'February typically'},
-    {step:'CINEA evaluation of concept notes',deadline:'2 months'},
-    {step:'Full application invitation (if CN selected)',deadline:'April deadline'},
-    {step:'CINEA technical and financial evaluation',deadline:'4–5 months'},
-    {step:'Grant Agreement preparation',deadline:'1–2 months after selection'},
-  ],
-  x:0.5,y:-0.1,z:-1.2,size:1.1},
-
-  // ── JAPAN ──
-  {id:'jst_crest',label:'JST CREST — Ocean CDR',geo:'Japan',region:'Japan',type:'nondilutive',
-  fundSize:'¥300M–¥500M over 5 years (~$2M–$3.3M)',deadline:'Annual — typically May',
-  url:'https://www.jst.go.jp/kisoken/crest/en/index.html',
-  desc:'JST CREST (Core Research for Evolutional Science and Technology) funds large-scale strategic research consortia. The "Creation of the Foundation for New Carbon Management" research area explicitly covers ocean CDR. Japan\'s deep-water Pacific and Southern Ocean access is strategically valuable.',
-  fit:'CREST requires a Japanese PI at a Japanese institution. JAMSTEC (Japan Agency for Marine-Earth Science and Technology) or Tokyo University of Marine Science are natural partners. Gigablue contributes field infrastructure and commercial CDR verification.',
-  actions:[
-    {t:'Identify JAMSTEC ocean biogeochemistry researcher as potential CREST PI',u:true},
-    {t:'Approach JST programme officer for "Carbon Management" research area',u:false},
-    {t:'Draft concept for Japan-Pacific MCFS deployment — leverage Japan\'s deep-water EEZ',u:false},
-    {t:'Map Gigablue\'s Puro.earth verification to JST\'s MRV (measurement, reporting, verification) priorities',u:false},
-  ],
-  contacts:[
-    {name:'JAMSTEC',role:'Japan Agency for Marine-Earth Science',url:'https://www.jamstec.go.jp/e/'},
-    {name:'JST CREST Programme Office',role:'Carbon Management research area',url:'https://www.jst.go.jp/kisoken/crest/en/'},
-    {name:'Tokyo University of Marine Science',role:'Academic partner candidate',url:'https://www.kaiyodai.ac.jp/english/'},
-  ],
-  process:[
-    {step:'JAMSTEC PI submits research proposal to JST — Gigablue as industrial collaborator',deadline:'May annually'},
-    {step:'JST external review panel evaluation',deadline:'3–4 months'},
-    {step:'JST research supervisor matching and negotiation',deadline:'If shortlisted'},
-    {step:'CREST project start (October)',deadline:'Annual start date'},
-  ],
-  x:0.9,y:-0.1,z:-0.9,size:1.15},
-
-  {id:'nedo_ocean',label:'NEDO Ocean Innovation',geo:'Japan',region:'Japan',type:'nondilutive',
-  fundSize:'¥100M–$1B+ (strategic programmes)',deadline:'Variable — monitor NEDO calls',
-  url:'https://www.nedo.go.jp/english/index.html',
-  desc:'NEDO (New Energy and Industrial Technology Development Organization) is Japan\'s largest R&D funding agency. The "Green Innovation Fund" (¥2 trillion) includes ocean-based CDR as a priority. NEDO funds international collaborative R&D with Japanese industry.',
-  fit:'NEDO international collaborative projects allow non-Japanese partners. MOL (Mitsui O.S.K. Lines), already in Gigablue\'s commercial network, is a strong Japanese industrial co-applicant that would give NEDO a compelling corporate champion.',
-  actions:[
-    {t:'Contact MOL sustainability team about NEDO Green Innovation Fund co-application',u:true},
-    {t:'Review NEDO Green Innovation Fund ocean CDR programme details',u:false},
-    {t:'Identify NEDO programme officer for ocean/marine CDR',u:false},
-    {t:'Develop Japan-specific deployment concept — Pacific nutrient-limited zones',u:false},
-  ],
-  contacts:[
-    {name:'MOL (Mitsui O.S.K. Lines)',role:'Existing Gigablue partner — NEDO champion',url:'https://www.mol.co.jp/en/'},
-    {name:'NEDO Green Innovation Fund',role:'Ocean CDR programme',url:'https://www.nedo.go.jp/english/'},
-    {name:'JAMSTEC',role:'Scientific validation partner',url:'https://www.jamstec.go.jp/e/'},
-  ],
-  process:[
-    {step:'Engage MOL on NEDO co-application concept',deadline:'Immediate — leverage existing relationship'},
-    {step:'MOL submits Expression of Interest to NEDO with Gigablue as international partner',deadline:'Per NEDO call'},
-    {step:'NEDO technical review and negotiations',deadline:'3–5 months'},
-    {step:'R&D agreement between NEDO, MOL, and Gigablue',deadline:'If successful'},
-  ],
-  x:1.2,y:-0.5,z:-0.6,size:1.2},
-
-  // ── AUSTRALIA ──
-  {id:'csiro_innovation',label:'CSIRO Mission — Net Zero',geo:'Australia',region:'Australia',type:'nondilutive',
-  fundSize:'$500K–$5M (Mission programme)',deadline:'Rolling — monitor CSIRO.AU',
-  url:'https://www.csiro.au/en/research/environmental-sustainability/climate',
-  desc:'CSIRO\'s Net Zero mission targets CDR research including ocean-based approaches. CSIRO has existing marine biogeochemistry programs and Southern Ocean research vessels. Gigablue\'s NZ base and Southern Ocean access make this a natural partnership.',
-  fit:'CSIRO prefers Australian partners but international collaboration is common. A joint CSIRO-Gigablue project framed around Southern Ocean carbon flux monitoring and MCFS validation would leverage CSIRO\'s RV Investigator infrastructure.',
-  actions:[
-    {t:'Contact CSIRO Oceans & Atmosphere — identify mCDR-relevant researcher',u:true},
-    {t:'Explore whether SA or VIC government engagement can introduce Gigablue to CSIRO',u:false},
-    {t:'Propose MCFS field trial in Australian EEZ waters as joint project',u:false},
-    {t:'Map MCFS to CSIRO\'s Net Zero Mission priority outputs',u:false},
-  ],
-  contacts:[
-    {name:'CSIRO Oceans & Atmosphere',role:'Marine biogeochemistry group',url:'https://www.csiro.au/en/about/people/business-units/environment/oceans-and-atmosphere'},
-    {name:'CSIRO Net Zero Mission',role:'Programme office',url:'https://www.csiro.au/en/research/environmental-sustainability/climate/net-zero-mission'},
-  ],
-  process:[
-    {step:'Establish informal contact with CSIRO O&A researcher',deadline:'Immediate'},
-    {step:'Attend CSIRO Marine CDR workshop if available',deadline:'Monitor'},
-    {step:'Submit Expression of Interest to CSIRO Mission programme',deadline:'Rolling'},
-    {step:'Negotiate collaborative research agreement',deadline:'3–4 months'},
-  ],
-  x:0.5,y:-1.1,z:0.3,size:1.15},
-
-  {id:'arc_linkage',label:'ARC Linkage Projects',geo:'Australia',region:'Australia',type:'nondilutive',
-  fundSize:'$300K–$1M ARC + matching industry cash/in-kind',deadline:'Annual — March/April',
-  url:'https://www.arc.gov.au/funding-research/funding-schemes/linkage-program/linkage-projects',
-  desc:'Australian Research Council Linkage Projects require an Australian university partner and industry "partner organisation" providing cash or in-kind contributions. Gigablue as industry partner contributing substrate, vessel time, and data access is a clean fit.',
-  fit:'University of Tasmania (IMAS), University of Melbourne, or UNSW as Australian PI. Gigablue contributes $150K–$300K cash/in-kind as industry partner. ARC matches with $300K–$700K. Southern Ocean or sub-Antarctic field work aligns with Australian research priorities.',
-  actions:[
-    {t:'Approach IMAS (Institute for Marine and Antarctic Studies, UTas) as ARC PI',u:true},
-    {t:'Confirm Gigablue\'s in-kind contribution value (substrate, vessel time, data)',u:false},
-    {t:'Map research questions to ARC Linkage priorities — industry benefit must be clear',u:false},
-    {t:'Check ARC Linkage Projects 2026 deadline',u:false},
-  ],
-  contacts:[
-    {name:'IMAS (Univ. of Tasmania)',role:'Marine science ARC PI candidate',url:'https://www.imas.utas.edu.au/'},
-    {name:'ARC Linkage Projects',role:'Programme office',url:'https://www.arc.gov.au/funding-research/funding-schemes/linkage-program/linkage-projects'},
-    {name:'CSIRO as co-investigator',role:'Strengthen application',url:'https://www.csiro.au/'},
-  ],
-  process:[
-    {step:'Australian PI institution lodges application — Gigablue as Partner Organisation',deadline:'March/April annually'},
-    {step:'ARC College of Experts peer review',deadline:'4–5 months'},
-    {step:'ARC funding announcement',deadline:'October typically'},
-    {step:'Project start — January following year'},
-  ],
-  x:0.8,y:-0.9,z:0.1,size:1.1},
-
-  {id:'arena_rnd',label:'ARENA R&D Programme',geo:'Australia',region:'Australia',type:'nondilutive',
-  fundSize:'$500K–$10M',deadline:'Rolling — ARENA.gov.au open calls',
-  url:'https://arena.gov.au/funding/',
-  desc:'Australian Renewable Energy Agency funds clean energy R&D including carbon capture and removal. ARENA\'s 2023–2027 investment plan includes ocean-based CDR as an emerging priority. Unlike academic grants, ARENA works directly with companies.',
-  fit:'ARENA funds companies directly — no university partner required. Gigablue\'s NZ base is a mild barrier but Australian operations or partnership with CSIRO/IMAS removes it. The cost-reduction trajectory and Puro.earth verification pathway address ARENA\'s technology readiness requirements.',
-  actions:[
-    {t:'Review ARENA\'s current open funding rounds at arena.gov.au/funding',u:true},
-    {t:'Contact ARENA directly for pre-application consultation',u:false},
-    {t:'Determine whether Australian entity or partnership required',u:false},
-    {t:'Prepare ARENA-specific technology brief: cost curve, MRV, scale-up pathway',u:false},
-  ],
-  contacts:[
-    {name:'ARENA',role:'Australian Renewable Energy Agency',url:'https://arena.gov.au/'},
-    {name:'ARENA Emerging Renewables Programme',role:'Carbon removal focus',url:'https://arena.gov.au/funding/'},
-  ],
-  process:[
-    {step:'Review open funding rounds — submit Expression of Interest',deadline:'Rolling'},
-    {step:'ARENA investment team assessment',deadline:'4–6 weeks'},
-    {step:'Detailed project proposal if EOI approved',deadline:'6–8 weeks'},
-    {step:'ARENA Board approval',deadline:'Quarterly board meetings'},
-    {step:'Funding agreement execution',deadline:'1–2 months'},
-  ],
-  x:0.2,y:-1.2,z:-0.2,size:1.2},
-
-  // ── NEW ZEALAND ──
-  {id:'mbie_endeavour',label:'MBIE Endeavour Fund',geo:'New Zealand',region:'NZ',type:'nondilutive',
-  fundSize:'$500K–$5M over 4–5 years (Smart Ideas); up to $12M (Research Programmes)',
-  deadline:'Smart Ideas: annual March; Research Programmes: annual April',
-  url:'https://www.mbie.govt.nz/science-and-technology/science-and-innovation/funding-information-and-opportunities/investment-funds/endeavour-fund/',
-  desc:'MBIE\'s Endeavour Fund is New Zealand\'s primary contestable science funding mechanism. It explicitly funds "research that will contribute to New Zealand\'s net zero 2050 goals." Gigablue\'s NZ headquarters and NIWA/Cawthron partnerships make this the single most accessible major fund.',
-  fit:'As a NZ company with NIWA and Cawthron as existing science partners, Gigablue is ideally positioned. NIWA can lead as PI institution with Gigablue as industry partner. The Smart Ideas stream ($500K, 2 years) is achievable in 2026 cycle.',
-  actions:[
-    {t:'Contact NIWA commercial partnerships team about Endeavour Smart Ideas co-application',u:true},
-    {t:'Confirm Cawthron Institute willingness to join as co-investigator',u:true},
-    {t:'Map MCFS to MBIE Endeavour "net zero 2050" and "ocean science" priorities',u:false},
-    {t:'Prepare research plan: MCFS carbon flux verification in NZ EEZ waters',u:false},
-    {t:'Check Endeavour Smart Ideas 2027 call timeline',u:false},
-  ],
-  contacts:[
-    {name:'NIWA Commercial',role:'Primary PI institution',url:'https://niwa.co.nz/'},
-    {name:'Cawthron Institute',role:'Co-investigator',url:'https://www.cawthron.org.nz/'},
-    {name:'MBIE Science System Investment',role:'Endeavour Fund programme office',url:'https://www.mbie.govt.nz/'},
-  ],
-  process:[
-    {step:'NIWA submits Expression of Interest with Gigablue as partner',deadline:'February (Smart Ideas)'},
-    {step:'MBIE EOI assessment — shortlist to full application',deadline:'4 weeks'},
-    {step:'Full proposal submission',deadline:'March/April'},
-    {step:'Expert peer review panel',deadline:'May–July'},
-    {step:'MBIE Investment Advisory Committee recommendation',deadline:'August'},
-    {step:'Funding decisions announced',deadline:'October'},
-  ],
-  x:-0.6,y:-0.8,z:-0.8,size:1.35},
-
-  {id:'nz_green_investment',label:'NZ Green Investment Finance',geo:'New Zealand',region:'NZ',type:'dilutive',
-  fundSize:'$500K–$50M (equity / debt / blended)',deadline:'Rolling — NZGIF.co.nz',
-  url:'https://www.nzgif.co.nz/',
-  desc:'NZ Green Investment Finance is the New Zealand government\'s specialist climate finance institution. It provides concessional debt, equity, and guarantees to accelerate low-carbon investment. As a NZ-incorporated CDR company, Gigablue is a direct fit for NZGIF\'s mandate.',
-  fit:'NZGIF is explicitly mandated to fund NZ-based CDR and nature-based solutions. It can co-invest alongside private Series A investors. A NZGIF term sheet would be a significant validation signal for institutional investors. Dilutive but at government-supported concessional terms.',
-  actions:[
-    {t:'Contact NZGIF directly — Gigablue is a textbook fit for their mandate',u:true},
-    {t:'Prepare NZGIF investment brief: NZ jobs, carbon sequestration volume, commercial pathway',u:true},
-    {t:'Explore whether NZGIF can co-invest alongside Series A',u:false},
-    {t:'Identify NZGIF investment team lead for climate/ocean CDR',u:false},
-  ],
-  contacts:[
-    {name:'NZ Green Investment Finance',role:'Investment team',url:'https://www.nzgif.co.nz/'},
-    {name:'NZGIF CEO: Craig Weise',role:'Direct approach',url:'https://www.nzgif.co.nz/about-us/our-team/'},
-  ],
-  process:[
-    {step:'Submit Investment Enquiry via NZGIF website',deadline:'Rolling'},
-    {step:'Initial screening call with NZGIF investment team',deadline:'2–3 weeks'},
-    {step:'Investment thesis presentation',deadline:'4–6 weeks'},
-    {step:'Due diligence (financial, technical, environmental)',deadline:'2–3 months'},
-    {step:'Investment committee approval and term sheet',deadline:'1 month'},
-    {step:'Legal documentation and closing',deadline:'1–2 months'},
-  ],
-  x:-0.9,y:-0.6,z:-0.6,size:1.2},
-
-  {id:'pgo_nz',label:'Pacific Geoengineering Office',geo:'New Zealand / Pacific',region:'NZ',type:'nondilutive',
-  fundSize:'Variable — emerging programme',deadline:'Monitor — nascent stage',
-  url:'https://www.mfe.govt.nz/climate-change/taking-action-climate-change/carbon-dioxide-removal',
-  desc:'MfE (Ministry for the Environment) is developing NZ\'s CDR policy framework and associated funding mechanisms under the Climate Change Response Act. A formal MCFS methodology recognition from MfE would unlock eligibility for future NZ domestic carbon credit systems and government procurement.',
-  fit:'As the only NZ-headquartered mCDR company, Gigablue has unique access to MfE CDR policy development. Early engagement positions Gigablue to shape the MCFS methodology within the NZ regulatory framework — a non-financial but high-value opportunity.',
-  actions:[
-    {t:'Identify MfE lead on CDR policy — submit a briefing paper on MCFS',u:true},
-    {t:'Request a meeting with MfE Climate Change team',u:false},
-    {t:'Connect MfE with NIWA and Cawthron for scientific validation',u:false},
-    {t:'Explore whether MCFS can be recognised under NZ\'s Emissions Trading Scheme',u:false},
-  ],
-  contacts:[
-    {name:'Ministry for the Environment NZ',role:'CDR policy lead',url:'https://www.mfe.govt.nz/'},
-    {name:'MfE Climate Change Division',role:'Carbon removal policy',url:'https://www.mfe.govt.nz/climate-change/'},
-    {name:'Parliamentary Commissioner for the Environment',role:'Independent science voice',url:'https://www.pce.parliament.nz/'},
-  ],
-  process:[
-    {step:'Submit 4-page MCFS technology briefing to MfE CDR policy team',deadline:'Immediate'},
-    {step:'MfE meeting — scoping NZ regulatory recognition pathway',deadline:'4–6 weeks'},
-    {step:'MfE engagement with NIWA and Cawthron for scientific peer review',deadline:'3 months'},
-    {step:'MfE policy development process — may take 12–24 months'},
-    {step:'Potential MCFS methodology inclusion in NZ domestic carbon framework'},
-  ],
-  x:-1.0,y:-0.9,z:-0.3,size:1.0},
-];
-
-
-
-
-// ── Utility functions ──
 const uid=()=>Math.random().toString(36).slice(2,9);
 const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const avatarColor=n=>{const h=['#f97316','#4fc3f7','#a78bfa','#34d399','#fbbf24','#f87171','#38bdf8','#4ade80'];let s=0;for(let i=0;i<n.length;i++)s+=n.charCodeAt(i);return h[s%h.length];};
@@ -1316,6 +1118,15 @@ function renderContent(){
       <div style="margin-bottom:14px">
         <div class="bar-wrap"><div class="bar-lbl"><span>Application readiness</span><span style="color:${s.color}">${g.readiness}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${g.readiness}%;background:${s.color}"></div></div></div>
         <div class="bar-wrap"><div class="bar-lbl"><span>Time urgency</span><span style="color:${urgColor}">${g.urgency}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${g.urgency}%;background:${urgColor}"></div></div></div>
+        <div class="bar-wrap" style="margin-top:4px">
+          <div class="bar-lbl"><span>Pursuit progress</span><span style="color:var(--cyan)">${g.progress||0}%</span></div>
+          <div class="bar-track" id="prog-track-${g.id}" onclick="setGrantProgress('${g.id}',event)" style="cursor:pointer;height:5px" title="Click or drag to update progress">
+            <div class="bar-fill" id="prog-fill-${g.id}" style="width:${g.progress||0}%;background:linear-gradient(90deg,#4fc3f7,#38bdf8)"></div>
+          </div>
+          <div class="progress-steps" style="margin-top:5px">
+            ${[['Identified',10],['Researching',25],['Engaged',50],['Applied',75],['Awarded',100]].map(([lbl,val])=>`<span class="prog-step${(g.progress||0)>=val?' active':''}" onclick="setGrantProgressVal('${g.id}',${val})">${lbl}</span>`).join('')}
+          </div>
+        </div>
       </div>
       ${a.successProb!==undefined?`<div class="sec-label" style="margin-bottom:8px">Analytics<span class="sec-line"></span></div>
       <div class="analytics-grid" style="margin-bottom:14px">
@@ -1677,251 +1488,116 @@ function buildUnifiedGlobe(){
   globeScene.add(globeMainGroup);
 
   if(globeMode==='geo'){
-    /* Geo mode: proper wireframe globe, country outlines, nodes at altitude */
+    /* ── GEO MODE: clean wireframe globe + country orbs ── */
     const GR=1.82;
 
-    // Ocean base sphere
+    // Solid dark ocean base
     globeMainGroup.add(new THREE.Mesh(
-      new THREE.SphereGeometry(GR-0.015,48,32),
-      new THREE.MeshBasicMaterial({color:0x020d18,opacity:0.95,transparent:true})
+      new THREE.SphereGeometry(GR-0.012,56,40),
+      new THREE.MeshBasicMaterial({color:0x020d18,transparent:true,opacity:0.96})
     ));
 
-    // Lat/lon grid
-    const gridM =new THREE.LineBasicMaterial({color:0x0e2a4a,transparent:true,opacity:0.55});
-    const eqM   =new THREE.LineBasicMaterial({color:0x1a6080,transparent:true,opacity:0.85});
-    const tropM =new THREE.LineBasicMaterial({color:0x0d3a55,transparent:true,opacity:0.6});
+    // Lat/lon grid — subtle
+    const gM=new THREE.LineBasicMaterial({color:0x0b2540,transparent:true,opacity:0.6});
+    const eqM=new THREE.LineBasicMaterial({color:0x1a5a80,transparent:true,opacity:0.9});
     for(let lat=-75;lat<=75;lat+=15){
-      const pts=[];
-      for(let lon=-180;lon<=180;lon+=3) pts.push(latLonToVec3(lat,lon,GR));
-      const mat=lat===0?eqM:(Math.abs(lat)===23||Math.abs(lat)===66)?tropM:gridM;
-      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));
+      const pts=[];for(let lo=-180;lo<=180;lo+=3)pts.push(latLonToVec3(lat,lo,GR));
+      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lat===0?eqM:gM));
     }
-    for(let lon=-180;lon<180;lon+=15){
-      const pts=[];
-      for(let lat=-89;lat<=89;lat+=3) pts.push(latLonToVec3(lat,lon,GR));
-      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gridM));
+    for(let lo=-180;lo<180;lo+=15){
+      const pts=[];for(let la=-89;la<=89;la+=3)pts.push(latLonToVec3(la,lo,GR));
+      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gM));
     }
 
-    // Country/coastline outlines — highlighted = Gigablue deployment region
-    const borderM=new THREE.LineBasicMaterial({color:0x1e4a6a,transparent:true,opacity:0.7});
-    const hlM    =new THREE.LineBasicMaterial({color:0x3db8e8,transparent:true,opacity:0.85});
+    // Country/coastline outlines — corrected with latLonToVec3
+    const bM=new THREE.LineBasicMaterial({color:0x1e4a6a,transparent:true,opacity:0.75});
+    const hlM=new THREE.LineBasicMaterial({color:0x4fc3f7,transparent:true,opacity:0.85});
     function poly(coords,mat){
-      const pts=coords.map(([la,lo])=>latLonToVec3(la,lo,GR+0.012));
+      const pts=coords.map(([la,lo])=>latLonToVec3(la,lo,GR+0.01));
       pts.push(pts[0].clone());
       globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));
     }
-
     // New Zealand — North Island
-    poly([[-34.4,172.7],[-36.9,174.8],[-37.7,176.2],[-38.7,177.5],[-39.3,176.6],
-          [-40.9,175.0],[-41.3,174.8],[-41.0,173.0],[-39.5,174.5],[-37.0,175.8],[-34.4,172.7]],hlM);
+    poly([[-34.5,172.7],[-36.9,174.8],[-37.7,176.2],[-38.7,177.5],[-39.3,176.6],[-40.9,175.0],[-41.3,174.8],[-41.0,173.0],[-39.5,174.5],[-37.0,175.8],[-34.5,172.7]],hlM);
     // South Island
-    poly([[-40.5,172.7],[-42.7,171.5],[-44.0,170.5],[-45.8,170.6],[-46.5,168.4],
-          [-44.0,168.3],[-43.5,172.5],[-41.2,173.9],[-40.5,172.7]],hlM);
-
+    poly([[-40.5,172.7],[-42.7,171.5],[-44.0,170.5],[-45.8,170.6],[-46.5,168.4],[-44.0,168.3],[-43.5,172.5],[-41.2,173.9],[-40.5,172.7]],hlM);
     // Australia
-    poly([[-13.7,130.0],[-14.0,129.0],[-21.8,114.1],[-31.7,115.7],[-33.9,121.9],
-          [-34.0,124.0],[-33.5,135.0],[-38.1,140.0],[-38.5,146.3],[-37.5,149.9],
-          [-35.0,150.8],[-28.0,153.5],[-23.5,151.3],[-18.3,146.3],[-15.4,145.3],
-          [-11.7,136.8],[-13.7,130.0]],hlM);
-
+    poly([[-13.7,130.0],[-14.0,129.0],[-21.8,114.1],[-31.7,115.7],[-33.9,121.9],[-34.0,124.0],[-33.5,135.0],[-38.1,140.0],[-38.5,146.3],[-37.5,149.9],[-35.0,150.8],[-28.0,153.5],[-23.5,151.3],[-18.3,146.3],[-15.4,145.3],[-11.7,136.8],[-13.7,130.0]],hlM);
     // Chile
-    poly([[-17.6,-69.5],[-21.5,-68.5],[-24.0,-67.6],[-27.1,-70.1],[-30.2,-71.6],
-          [-33.5,-71.6],[-36.1,-72.2],[-38.7,-73.2],[-41.5,-74.0],[-43.8,-74.5],
-          [-52.0,-74.0],[-55.0,-69.0],[-50.0,-73.5],[-45.0,-72.0],[-38.0,-71.5],
-          [-33.0,-70.5],[-26.0,-70.5],[-21.0,-70.0],[-17.6,-69.5]],hlM);
-
+    poly([[-17.6,-69.5],[-21.5,-68.5],[-24.0,-67.6],[-27.1,-70.1],[-30.2,-71.6],[-33.5,-71.6],[-36.1,-72.2],[-38.7,-73.2],[-41.5,-74.0],[-52.0,-74.0],[-55.0,-69.0],[-50.0,-73.5],[-45.0,-72.0],[-38.0,-71.5],[-33.0,-70.5],[-26.0,-70.5],[-21.0,-70.0],[-17.6,-69.5]],hlM);
     // Japan — Honshu
-    poly([[34.5,130.9],[36.2,133.2],[37.5,136.9],[38.3,140.7],[40.7,141.5],
-          [41.1,140.5],[39.9,139.1],[37.1,136.8],[35.4,133.4],[34.5,130.9]],hlM);
-    // Kyushu
-    poly([[31.0,130.1],[32.7,130.0],[33.5,130.5],[33.0,131.7],[31.4,131.0],[31.0,130.1]],borderM);
-
+    poly([[34.5,130.9],[36.2,133.2],[37.5,136.9],[38.3,140.7],[40.7,141.5],[41.1,140.5],[39.9,139.1],[37.1,136.8],[35.4,133.4],[34.5,130.9]],hlM);
     // Ireland
-    poly([[55.3,-7.5],[55.0,-6.2],[54.0,-5.8],[52.2,-6.1],[51.5,-8.4],
-          [53.0,-10.0],[54.5,-10.0],[55.3,-7.5]],hlM);
-
-    // Western Europe (France/Spain/Portugal block)
-    poly([[48.5,-1.8],[51.1,2.5],[51.9,4.1],[53.5,7.0],[54.9,9.0],
-          [54.0,10.9],[50.2,12.0],[48.5,9.5],[47.5,7.6],[43.5,3.2],
-          [43.4,1.5],[42.5,-1.0],[41.4,-2.2],[37.9,-8.9],[36.9,-9.5],
-          [38.7,-9.4],[41.0,-8.7],[43.5,-8.0],[43.8,-1.8],[48.5,-1.8]],borderM);
-    // EU North (Germany/BeNeLux/Nordics sketch)
-    poly([[51.1,2.5],[51.9,4.1],[53.5,7.0],[54.9,9.0],[57.8,9.5],
-          [57.3,12.5],[55.7,12.6],[54.5,11.0],[54.0,10.9],[51.1,2.5]],borderM);
-
+    poly([[55.3,-7.5],[55.0,-6.2],[54.0,-5.8],[52.2,-6.1],[51.5,-8.4],[53.0,-10.0],[54.5,-10.0],[55.3,-7.5]],hlM);
+    // Western Europe outline
+    poly([[51.1,2.5],[53.5,7.0],[54.9,9.0],[54.0,10.9],[50.2,12.0],[48.5,9.5],[47.5,7.6],[43.5,3.2],[43.4,1.5],[42.5,-1.0],[41.4,-2.2],[37.9,-8.9],[36.9,-9.5],[38.7,-9.4],[41.0,-8.7],[43.5,-8.0],[43.8,-1.8],[48.5,-1.8],[51.1,2.5]],bM);
     // Alaska
-    poly([[71.4,-156.5],[70.0,-141.0],[63.0,-141.0],[60.3,-141.0],
-          [59.5,-151.5],[57.0,-136.0],[55.5,-130.0],[55.0,-132.0],
-          [57.5,-136.0],[59.0,-138.5],[60.5,-141.0],[64.0,-141.0],
-          [68.0,-141.0],[70.0,-145.0],[71.4,-156.5]],hlM);
+    poly([[71.4,-156.5],[70.0,-141.0],[63.0,-141.0],[59.5,-151.5],[57.0,-136.0],[55.5,-130.0],[55.0,-132.0],[57.5,-136.0],[59.0,-138.5],[60.5,-141.0],[64.0,-141.0],[68.0,-141.0],[70.0,-145.0],[71.4,-156.5]],hlM);
+    // Equator accent ring
+    globeMainGroup.add(makeRing(GR+0.015,0x1a6080,0.55));
 
-    // Equator ring accent
-    globeMainGroup.add(makeRing(GR+0.015,0x1a6080,0.6));
-    // South Pole marker
-    globeMainGroup.add(makeRing(GR+0.005,0x0d3a55,0.4,Math.PI/2));
+    /* ── Country orbs — one per canonical country group ── */
+    const GEO_CANON={
+      'Chile':'Chile','Chile / Global':'Chile','New Zealand':'New Zealand',
+      'New Zealand / Pacific':'New Zealand','Alaska / USA':'Alaska','USA':'Alaska',
+      'European Union':'EU','Ireland':'EU','Australia':'Australia',
+      'Japan':'Japan','Global':'Global','Multi-country':'Global','all':'Global'
+    };
+    const GEO_CENTER={
+      'Chile':[-33.5,-70.7],'New Zealand':[-41.0,174.0],'Alaska':[64.0,-153.0],
+      'EU':[51.5,10.0],'Australia':[-25.0,134.0],'Japan':[36.0,138.0],'Global':[0.0,0.0]
+    };
+    // Group grants + discovery by canonical country
+    const countryMap={};
+    grants.forEach(g=>{
+      const key=GEO_CANON[g.geo]||'Global';
+      if(!countryMap[key])countryMap[key]={pipeline:[],disc:[]};
+      countryMap[key].pipeline.push(g);
+    });
+    DISC_SEED.forEach(g=>{
+      const rm={'Chile':'Chile','NZ':'New Zealand','Alaska':'Alaska','EU':'EU','Australia':'Australia','Japan':'Japan'};
+      const key=rm[g.region]||'Global';
+      if(!countryMap[key])countryMap[key]={pipeline:[],disc:[]};
+      countryMap[key].disc.push(g);
+    });
+
+    Object.entries(countryMap).forEach(([country,data])=>{
+      const coords=GEO_CENTER[country];if(!coords)return;
+      const pos=latLonToVec3(coords[0],coords[1],1.87);
+      const total=data.pipeline.length+data.disc.length;
+      const r=0.04+Math.min(total,10)*0.011;
+
+      // White pulsing orb
+      const orbMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9});
+      const orb=new THREE.Mesh(new THREE.SphereGeometry(r,16,16),orbMat);
+      orb.position.copy(pos);
+      orb.userData={type:'geoOrb',country,data,pos:pos.clone()};
+      globeMainGroup.add(orb);
+      allNodeMeshes.push(orb);
+
+      // Outer glow
+      const glowMat=new THREE.MeshBasicMaterial({color:0x4fc3f7,transparent:true,opacity:0.15,side:THREE.BackSide});
+      const glow=new THREE.Mesh(new THREE.SphereGeometry(r*2.8,16,16),glowMat);
+      glow.position.copy(pos);
+      globeMainGroup.add(glow);
+      allGlowMeshes.push(glow);
+
+      // Country label
+      const cv=document.createElement('canvas');cv.width=200;cv.height=44;
+      const ctx=cv.getContext('2d');
+      ctx.fillStyle='#ffffff';ctx.font="700 12px 'Courier New',monospace";ctx.textAlign='center';
+      ctx.fillText(country.toUpperCase(),100,16);
+      ctx.fillStyle='#4fc3f7';ctx.font="10px 'Courier New',monospace";
+      ctx.fillText(total+' VECTOR'+(total!==1?'S':''),100,32);
+      const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
+      sp.scale.set(0.65,0.14,1);
+      sp.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.26)));
+      globeMainGroup.add(sp);
+    });
+    globeMainGroup.userData.neuralLines=[];
 
   } else {
-    /* Cluster mode: orbital rings */
-    globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.7));
-    globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.42,Math.PI/2));
-    globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.28,0,Math.PI/2));
-    globeMainGroup.add(makeRing(2.2,0x0a3a2a,0.25));
-    globeMainGroup.add(makeRing(2.2,0x0a3a2a,0.14,Math.PI/2));
-    /* Grid floor */
-    const gp=[];for(let i=-3;i<=3;i+=0.6){gp.push(i,-2.4,-3,i,-2.4,3,-3,-2.4,i,3,-2.4,i);}
-    const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(gp,3));
-    globeMainGroup.add(new THREE.LineSegments(gg,new THREE.LineBasicMaterial({color:0x020d18,transparent:true,opacity:0.9})));
-    /* Center dot */
-    globeMainGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.06,16,16),new THREE.MeshBasicMaterial({color:0x4fc3f7,transparent:true,opacity:0.7})));
-  }
-
-  const raycaster=new THREE.Raycaster();
-
-  /* ── Pipeline nodes (inner shell r=1.28) ── */
-  // Node position: cluster mode or geo mode
-  grants.forEach((g,i)=>{
-    const s=SM[g.status];
-    let pos;
-    if(globeMode==='geo'){
-      // Place on real-world lat/lon on the geo globe (r=1.82)
-      const coords=GEO_COORDS[g.geo];
-      if(coords){
-        // Spread multiple grants at same geo in a small arc
-        const sameGeo=grants.filter(gg=>gg.geo===g.geo);
-        const n=sameGeo.length, idx=sameGeo.indexOf(g);
-        const spreadLat = n>1 ? (idx-(n-1)/2)*2.5 : 0;
-        const spreadLon = n>1 ? (idx%2===0?1:-1)*Math.ceil(idx/2)*2.0 : 0;
-        pos=latLonToVec3(coords[0]+spreadLat, coords[1]+spreadLon, 2.05);
-      } else pos=new THREE.Vector3(g.x*1.28,g.y*1.28,g.z*1.28);
-    } else {
-      // Regional anchors — pipeline nodes cluster by geography
-      const regionAnchors={
-        'Chile':          [-0.7, -0.4,  0.8],
-        'Chile / Global': [-0.6, -0.3,  0.9],
-        'Australia':      [ 0.8, -0.5, -0.3],
-        'New Zealand':    [ 0.6,  0.1, -0.9],
-        'New Zealand / Pacific':[ 0.5,  0.2, -0.9],
-        'Alaska / USA':   [ 0.3,  0.8,  0.6],
-        'USA':            [ 0.4,  0.7,  0.6],
-        'European Union': [-0.6,  0.7, -0.4],
-        'Ireland':        [-0.7,  0.6, -0.4],
-        'Japan':          [ 0.9,  0.2,  0.4],
-        'Global':         [ 0.0,  0.9,  0.1],
-        'Multi-country':  [ 0.1,  0.8,  0.2],
-      };
-      const anc=regionAnchors[g.geo]||[g.x,g.y,g.z];
-      const bx=g.x+(anc[0]-g.x)*0.65, by=g.y+(anc[1]-g.y)*0.65, bz=g.z+(anc[2]-g.z)*0.65;
-      const bm=Math.sqrt(bx*bx+by*by+bz*bz)||1;
-      pos=new THREE.Vector3(bx/bm*1.28,by/bm*1.28,bz/bm*1.28);
-    }
-    const r=(g.size||1)*0.1;
-    // Stem line: in geo mode from surface point, in cluster mode from origin
-    const stemStart=(()=>{
-      if(globeMode==='geo'){const c2=GEO_COORDS[g.geo];return c2?latLonToVec3(c2[0],c2[1],1.83):new THREE.Vector3(0,0,0);}
-      return new THREE.Vector3(0,0,0);
-    })();
-    const spGeo=new THREE.BufferGeometry().setFromPoints([stemStart,pos.clone()]);
-    globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:globeMode==='geo'?0.5:0.08})));
-    const sg=buildSphere(r,s.color);
-    sg.position.copy(pos);sg.userData={id:g.id,type:'pipeline',index:i};
-    globeMainGroup.add(sg);
-    const hit=new THREE.Mesh(new THREE.SphereGeometry(r*1.8,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    hit.position.copy(pos);hit.userData={id:g.id,type:'pipeline',index:i,sg};
-    globeMainGroup.add(hit);allNodeMeshes.push(hit);
-    const glow=new THREE.Mesh(new THREE.SphereGeometry(r*2.4,12,12),new THREE.MeshBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0,side:THREE.BackSide}));
-    glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
-    const words=g.label.split(' '),mid=Math.ceil(words.length/2);
-    const cv=document.createElement('canvas');cv.width=280;cv.height=72;const ctx=cv.getContext('2d');
-    ctx.fillStyle=g.status==='future'?'#4b5563':s.color;ctx.font="700 18px 'Courier New',monospace";ctx.textAlign='center';
-    ctx.fillText(words.slice(0,mid).join(' '),140,26);if(words.slice(mid).length)ctx.fillText(words.slice(mid).join(' '),140,50);
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
-    sp.scale.set(0.95,0.24,1);sp.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.22)));
-    globeMainGroup.add(sp);
-  });
-
-  /* ── Discovery nodes (outer shell r=2.2) ── */
-  DISC_SEED.forEach((g,i)=>{
-    const typeColor=(DISC_TYPES[g.type]||DISC_TYPES.nondilutive).color;
-    const col=new THREE.Color(typeColor);
-    const phi=Math.acos(1-2*(i+0.5)/DISC_SEED.length);
-    const theta=(Math.PI*(1+Math.sqrt(5)))*(i+0.5);
-    // All discovery nodes cluster together on the upper-left outer shell
-    let pos;
-    if(globeMode==='geo'){
-      // Place on real-world lat/lon on geo globe (r=1.82, slightly offset outward)
-      const coords=GEO_COORDS[g.region];
-      if(coords) pos=latLonToVec3(coords[0],coords[1],2.22);
-      else {
-        const rx2=Math.sin(phi)*Math.cos(theta),ry2=Math.cos(phi),rz2=Math.sin(phi)*Math.sin(theta);
-        pos=new THREE.Vector3(rx2*2.05,ry2*2.05,rz2*2.05);
-      }
-    } else {
-      // Discovery nodes cluster by region to sit near their pipeline counterparts
-      const discRegionAnchors={
-        'Chile':     [-0.7, -0.4,  0.8],
-        'Australia': [ 0.8, -0.5, -0.3],
-        'NZ':        [ 0.6,  0.1, -0.9],
-        'Alaska':    [ 0.3,  0.8,  0.6],
-        'EU':        [-0.6,  0.7, -0.4],
-        'Japan':     [ 0.9,  0.2,  0.4],
-      };
-      const discAnchor=discRegionAnchors[g.region]||[0.0,0.9,0.1];
-      const rx=Math.sin(phi)*Math.cos(theta), ry=Math.cos(phi), rz=Math.sin(phi)*Math.sin(theta);
-      const dx=rx+(discAnchor[0]-rx)*0.62, dy=ry+(discAnchor[1]-ry)*0.62, dz=rz+(discAnchor[2]-rz)*0.62;
-      const dm2=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
-      pos=new THREE.Vector3(dx/dm2*2.2,dy/dm2*2.2,dz/dm2*2.2);
-    }
-    const r=0.07*(g.size||1);
-    const discLineStart=(()=>{
-      if(globeMode==='geo'){const dc=GEO_COORDS[g.region];return dc?latLonToVec3(dc[0],dc[1],1.83):new THREE.Vector3(0,0,0);}
-      return new THREE.Vector3(0,0,0);
-    })();
-    const spGeo=new THREE.BufferGeometry().setFromPoints([discLineStart,pos.clone()]);
-    globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:globeMode==='geo'?0.25:0.04})));
-    /* Octahedron shape for discovery nodes */
-    const sg=new THREE.Group();
-    sg.position.copy(pos);sg.userData={id:g.id,type:'discovery',index:i};
-    const coreMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.85});
-    sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*0.7,0),coreMat));
-    sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*1.1,0),new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:0.3})));
-    sg.userData.coreMat=coreMat;
-    globeMainGroup.add(sg);
-    const hit=new THREE.Mesh(new THREE.SphereGeometry(r*2.2,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    hit.position.copy(pos);hit.userData={id:g.id,type:'discovery',index:i,sg};
-    globeMainGroup.add(hit);allNodeMeshes.push(hit);
-    const glow=new THREE.Mesh(new THREE.SphereGeometry(r*3.0,10,10),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:THREE.BackSide}));
-    glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
-    const words=g.label.split(' ');const cv2=document.createElement('canvas');cv2.width=256;cv2.height=56;
-    const ctx2=cv2.getContext('2d');ctx2.fillStyle=typeColor;ctx2.font="600 13px 'Courier New',monospace";ctx2.textAlign='center';
-    ctx2.fillText(words.slice(0,2).join(' '),128,22);if(words.length>2){ctx2.font="11px 'Courier New',monospace";ctx2.fillText(words.slice(2).join(' '),128,38);}
-    const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthWrite:false,opacity:0.75}));
-    sp2.scale.set(0.7,0.175,1);sp2.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.16)));
-    globeMainGroup.add(sp2);
-  });
-
-  /* ── Neural network lines — faint, pulsing (cluster mode only) ── */
-  const neuralLines=[];
-  if(globeMode!=='geo') allNodeMeshes.forEach(dHit=>{
-    if(dHit.userData.type!=='discovery')return;
-    const dg=DISC_SEED.find(g=>g.id===dHit.userData.id);if(!dg)return;
-    allNodeMeshes.forEach(pHit=>{
-      if(pHit.userData.type!=='pipeline')return;
-      const pg=grants.find(g=>g.id===pHit.userData.id);if(!pg)return;
-      const match=dg.region.toLowerCase()===pg.geo.toLowerCase().split('/')[0].trim()||
-                  pg.geo.toLowerCase().includes(dg.region.toLowerCase())||
-                  dg.geo.toLowerCase().includes(pg.geo.toLowerCase().split('/')[0].trim());
-      if(!match)return;
-      const mat=new THREE.LineBasicMaterial({color:0x1a4a6a,transparent:true,opacity:0.12});
-      const geo=new THREE.BufferGeometry().setFromPoints([pHit.position.clone(),dHit.position.clone()]);
-      const line=new THREE.Line(geo,mat);
-      globeMainGroup.add(line);
-      // urgency drives pulse speed and peak brightness
-      const urgency=(pg.urgency||50)/100;
-      neuralLines.push({mat, urgency, offset:Math.random()*Math.PI*2});
-    });
-  });
-  if(globeMode!=='geo') globeMainGroup.userData.neuralLines=neuralLines;
-  else globeMainGroup.userData.neuralLines=neuralLines; // empty in geo mode
+    // ── CLUSTER MODE: orbital shells (unchanged) ──
 
   /* ── Resize ── */
   new ResizeObserver(()=>{
@@ -2106,6 +1782,46 @@ function showApiKeyPrompt(){
   }
 }
 
+
+// ── Geo map popup ──
+function openGeoPopup(country, data){
+  const popup=document.getElementById('geo-popup');
+  const title=document.getElementById('geo-pop-title');
+  const body=document.getElementById('geo-pop-body');
+  const SM2={pursue:{label:'Pursue Now',color:'#f97316'},highpot:{label:'Pipeline',color:'#4fc3f7'},watch:{label:'Watch',color:'#a78bfa'},future:{label:'Future',color:'#6b7280'}};
+  const DISC_COL={nondilutive:'#34d399',dilutive:'#a78bfa',blended:'#fbbf24'};
+  const total=data.pipeline.length+data.disc.length;
+  title.textContent=country.toUpperCase()+' · '+total+' VECTOR'+(total!==1?'S':'');
+  let html='';
+  if(data.pipeline.length){
+    html+=`<div style="padding:6px 14px 3px;font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase">Pipeline Grants</div>`;
+    data.pipeline.forEach(g=>{
+      const s=SM2[g.status]||SM2.future;
+      html+=`<div class="geo-pop-row" onclick="closeGeoPopup();selectGrant('${g.id}')">
+        <span class="geo-pop-dot" style="background:${s.color}"></span>
+        <span class="geo-pop-label">${g.label}</span>
+        <span class="geo-pop-status">${s.label}</span>
+      </div>`;
+    });
+  }
+  if(data.disc.length){
+    html+=`<div style="padding:6px 14px 3px;font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase;border-top:1px solid var(--border)">Discovery Vectors</div>`;
+    data.disc.forEach(g=>{
+      const col=DISC_COL[g.type]||'#34d399';
+      html+=`<div class="geo-pop-row" onclick="closeGeoPopup();selectDiscGrant('${g.id}')">
+        <span class="geo-pop-dot" style="background:${col};border-radius:2px;transform:rotate(45deg)"></span>
+        <span class="geo-pop-label">${g.label}</span>
+        <span class="geo-pop-status" style="color:${col}">${g.type}</span>
+      </div>`;
+    });
+  }
+  body.innerHTML=html;
+  popup.classList.add('visible');
+}
+function closeGeoPopup(){
+  document.getElementById('geo-popup').classList.remove('visible');
+}
+
 // ── Globe mode toggle ──
 // Real-world lat/lon → 3D sphere position (radius r)
 function latLonToVec3(lat, lon, r){
@@ -2155,11 +1871,11 @@ function setGlobeMode(mode){
 function mobileCollapse(){
   if(window.innerWidth>700)return;
   document.getElementById('globe-panel').classList.add('collapsed');
-  document.getElementById('back-to-globe').classList.add('visible');
+  
 }
 function mobileBackToGlobe(){
   document.getElementById('globe-panel').classList.remove('collapsed');
-  document.getElementById('back-to-globe').classList.remove('visible');
+  
   document.getElementById('globe-panel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -2174,17 +1890,19 @@ const STATUS_META={
 };
 
 function switchView(view){
-  const isGlobe=view==='globe', isRepo=view==='repo', isUpload=view==='upload';
+  const isGlobe=view==='globe', isRepo=view==='repo', isUpload=view==='upload', isAdd=view==='add';
   document.getElementById('repo-view').classList.toggle('visible', isRepo);
   document.getElementById('upload-view').classList.toggle('visible', isUpload);
+  document.getElementById('add-view').classList.toggle('visible', isAdd);
   document.getElementById('globe-panel').style.display=isGlobe?'':'none';
   document.getElementById('right-panel').style.display=isGlobe&&window.innerWidth>700?'flex':'none';
   document.getElementById('disc-panel').style.display='none';
   document.getElementById('divider').style.display=isGlobe&&window.innerWidth>700?'':'none';
-  document.getElementById('back-to-globe').classList.remove('visible');
+  
   document.getElementById('nav-globe').classList.toggle('active', isGlobe);
   document.getElementById('nav-repo').classList.toggle('active', isRepo);
   document.getElementById('nav-upload').classList.toggle('active', isUpload);
+  document.getElementById('nav-add').classList.toggle('active', isAdd);
   if(isRepo){buildRepoFilters();renderRepo();}
   if(isGlobe&&window.innerWidth>700){
     document.getElementById('globe-panel').style.width='55%';
@@ -2466,5 +2184,145 @@ function upAddToGlobe(){
 }
 
 init();
+
+// ── Progress bar functions ──
+function setGrantProgress(id, e){
+  const track=document.getElementById('prog-track-'+id);
+  if(!track)return;
+  const rect=track.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const pct=Math.round(Math.max(0,Math.min(100,x/rect.width*100)));
+  applyGrantProgress(id,pct);
+}
+function setGrantProgressVal(id,val){
+  applyGrantProgress(id,val);
+}
+function applyGrantProgress(id,pct){
+  const g=grants.find(g=>g.id===id);
+  if(!g)return;
+  g.progress=pct;
+  saveGrants();
+  // Update fill
+  const fill=document.getElementById('prog-fill-'+id);
+  if(fill)fill.style.width=pct+'%';
+  // Update step highlights
+  const track=document.getElementById('prog-track-'+id);
+  if(track){
+    const steps=track.parentElement.querySelectorAll('.prog-step');
+    steps.forEach(s=>{
+      const v=parseInt(s.getAttribute('onclick').match(/\d+/)[0]);
+      s.classList.toggle('active',pct>=v);
+    });
+    // Update label
+    const lbl=track.parentElement.previousElementSibling;
+    if(lbl){const span=lbl.querySelector('span:last-child');if(span)span.textContent=pct+'%';}
+  }
+}
+
+// ── Add Grant form functions ──
+(function(){
+  // Progress drag on add-form
+  let dragging=false;
+  function setProg(e){
+    const track=document.getElementById('af-prog-track');
+    if(!track)return;
+    const rect=track.getBoundingClientRect();
+    const clientX=e.touches?e.touches[0].clientX:e.clientX;
+    const pct=Math.round(Math.max(0,Math.min(100,(clientX-rect.left)/rect.width*100)));
+    document.getElementById('af-prog-fill').style.width=pct+'%';
+    document.getElementById('af-prog-val').textContent=pct+'%';
+    document.getElementById('af-progress').value=pct;
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    const track=document.getElementById('af-prog-track');
+    if(!track)return;
+    track.addEventListener('mousedown',e=>{dragging=true;setProg(e);});
+    track.addEventListener('touchstart',e=>{dragging=true;setProg(e);},{passive:true});
+    document.addEventListener('mousemove',e=>{if(dragging)setProg(e);});
+    document.addEventListener('touchmove',e=>{if(dragging)setProg(e);},{passive:true});
+    document.addEventListener('mouseup',()=>{dragging=false;});
+    document.addEventListener('touchend',()=>{dragging=false;});
+    track.addEventListener('click',setProg);
+  });
+})();
+
+function submitAddGrant(){
+  const label=document.getElementById('af-label').value.trim();
+  const geo=document.getElementById('af-geo').value;
+  const desc=document.getElementById('af-desc').value.trim();
+  if(!label||!geo||!desc){
+    alert('Please fill in Grant Name, Geography, and Description (marked *)');return;
+  }
+  const readiness=parseInt(document.getElementById('af-readiness').value)||50;
+  const urgency=parseInt(document.getElementById('af-urgency').value)||50;
+  const progress=parseInt(document.getElementById('af-progress').value)||0;
+  const successProb=parseInt(document.getElementById('af-successProb').value)||undefined;
+  const strategicFit=parseInt(document.getElementById('af-strategicFit').value)||undefined;
+  const riskStr=document.getElementById('af-risks').value.trim();
+  const actionsStr=document.getElementById('af-actions').value.trim();
+  const depsStr=document.getElementById('af-deps').value.trim();
+
+  // Build actions array
+  const actions=actionsStr?actionsStr.split('\n').filter(Boolean).map(t=>({t:t.trim(),u:false})):[];
+  const deps=depsStr?depsStr.split('\n').filter(Boolean):[];
+  const risks=riskStr?riskStr.split(',').map(s=>s.trim()).filter(Boolean):[];
+
+  const newGrant={
+    id:'custom_'+uid(),
+    label,
+    geo,
+    status:document.getElementById('af-status').value||'watch',
+    fundSize:document.getElementById('af-fundSize').value.trim()||'—',
+    timeline:document.getElementById('af-timeline').value.trim()||'—',
+    readiness,
+    urgency,
+    progress,
+    desc,
+    standing:document.getElementById('af-standing').value.trim()||'—',
+    actions,
+    metrics:[{k:'Added',v:new Date().toLocaleDateString()}],
+    analytics:{
+      successProb:successProb||50,
+      competition:document.getElementById('af-competition').value||'Medium',
+      strategicFit:strategicFit||50,
+      roiScore:document.getElementById('af-roiScore').value||'Medium',
+      compType:'Manual Entry',
+      risks,
+      dependencies:deps
+    },
+    x:Math.random()*2-1,y:Math.random()*2-1,z:Math.random()*2-1,
+    size:1.0+Math.random()*0.4
+  };
+
+  grants.push(newGrant);
+  saveGrants();
+  rebuildGlobe();
+  updateStats();
+
+  // Show success, then switch to globe
+  const succ=document.getElementById('af-success');
+  succ.classList.add('visible');
+  setTimeout(()=>{
+    succ.classList.remove('visible');
+    clearAddForm();
+    switchView('globe');
+    setTimeout(()=>selectGrant(newGrant.id),400);
+  },1800);
+}
+
+function clearAddForm(){
+  ['af-label','af-fundSize','af-timeline','af-desc','af-standing','af-actions','af-deps','af-risks']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['af-readiness','af-urgency'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=50;});
+  ['af-successProb','af-strategicFit'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('af-geo').value='';
+  document.getElementById('af-status').value='pursue';
+  document.getElementById('af-competition').value='';
+  document.getElementById('af-roiScore').value='';
+  document.getElementById('af-progress').value=0;
+  document.getElementById('af-prog-fill').style.width='0%';
+  document.getElementById('af-prog-val').textContent='0%';
+}
+
 </script>
 </html>
