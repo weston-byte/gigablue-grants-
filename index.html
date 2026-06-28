@@ -918,9 +918,8 @@ const avatarColor=n=>{const h=['#f97316','#4fc3f7','#a78bfa','#34d399','#fbbf24'
 const fmt=ts=>{if(!ts)return'—';const d=new Date(ts);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});};
 
 // ── App state ──
-let grants=[...SEED];
 let owners={},comments={};
-let selectedId=SEED[0].id,activeTab='overview';
+let selectedId=null,activeTab='overview';
 let currentMode='pipeline'; // 'pipeline' | 'discovery'
 let discSelectedId=null,discActiveTab='overview';
 
@@ -936,7 +935,7 @@ async function loadStorage(){
   // Load shared data from cloud storage
   try{
     const r1=await window.storage.get('gb5_grants',true);
-    if(r1&&r1.value)grants=[...SEED,...JSON.parse(r1.value).filter(g=>!SEED.find(s=>s.id===g.id))];
+    if(r1&&r1.value)grants=JSON.parse(r1.value);
   }catch(e){}
   try{
     const r2=await window.storage.get('gb5_owners',true);
@@ -979,8 +978,8 @@ async function syncFromGmail(){
     if(data.grants&&data.grants.length){
       data.grants.forEach(g=>{
         if(!g||!g.id)return;
-        // Don't overwrite SEED grants
-        if(SEED.find(s=>s.id===g.id))return;
+        // Don't overwrite existing grants
+        if(grants.find(s=>s.id===g.id))return;
         const existing=grants.find(e=>e.id===g.id);
         if(!existing){
           // Brand new — add to globe, stamp with arrival time
@@ -1684,6 +1683,7 @@ async function init(){
     document.getElementById('globe-panel').style.width='52%';
   }
   await loadStorage();
+  if(grants.length&&!selectedId)selectedId=grants[0].id;
   renderNodePicker();renderPanelHeader();renderContent();renderHdrOwners();updateStats();
   buildUnifiedGlobe();
   // Sync from Gmail on load, then every 2 hours
