@@ -1677,47 +1677,89 @@ function buildUnifiedGlobe(){
   globeScene.add(globeMainGroup);
 
   if(globeMode==='geo'){
-    /* Geo mode: wireframe globe with lat/lon grid + simplified country outlines */
+    /* Geo mode: proper wireframe globe, country outlines, nodes at altitude */
     const GR=1.82;
-    // Dark ocean sphere
-    globeMainGroup.add(new THREE.Mesh(new THREE.SphereGeometry(GR-0.01,48,32),
-      new THREE.MeshBasicMaterial({color:0x020d18,transparent:true,opacity:0.92})));
+
+    // Ocean base sphere
+    globeMainGroup.add(new THREE.Mesh(
+      new THREE.SphereGeometry(GR-0.015,48,32),
+      new THREE.MeshBasicMaterial({color:0x020d18,opacity:0.95,transparent:true})
+    ));
+
     // Lat/lon grid
-    const gridMat=new THREE.LineBasicMaterial({color:0x0d3060,transparent:true,opacity:0.5});
-    const eqMat=new THREE.LineBasicMaterial({color:0x1a5a8a,transparent:true,opacity:0.9});
+    const gridM =new THREE.LineBasicMaterial({color:0x0e2a4a,transparent:true,opacity:0.55});
+    const eqM   =new THREE.LineBasicMaterial({color:0x1a6080,transparent:true,opacity:0.85});
+    const tropM =new THREE.LineBasicMaterial({color:0x0d3a55,transparent:true,opacity:0.6});
     for(let lat=-75;lat<=75;lat+=15){
-      const pts=[];for(let lon=0;lon<=360;lon+=3)pts.push(latLonToVec3(lat,lon-180,GR));
-      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lat===0?eqMat:gridMat));
-    }
-    for(let lon=-180;lon<180;lon+=15){
-      const pts=[];for(let lat=-90;lat<=90;lat+=3)pts.push(latLonToVec3(lat,lon,GR));
-      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lon===0?eqMat:gridMat));
-    }
-    // Simplified country/region outline polygons (key Gigablue geographies)
-    const cMat=new THREE.LineBasicMaterial({color:0x1a4a7a,transparent:true,opacity:0.85});
-    const hlMat=new THREE.LineBasicMaterial({color:0x4fc3f7,transparent:true,opacity:0.5}); // highlighted
-    function drawPoly(latLons,mat){
-      const pts=latLons.map(([la,lo])=>latLonToVec3(la,lo,GR+0.008));
-      pts.push(pts[0]);
+      const pts=[];
+      for(let lon=-180;lon<=180;lon+=3) pts.push(latLonToVec3(lat,lon,GR));
+      const mat=lat===0?eqM:(Math.abs(lat)===23||Math.abs(lat)===66)?tropM:gridM;
       globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));
     }
-    // New Zealand (two islands simplified)
-    drawPoly([[-34.5,172.7],[-37.5,175.0],[-38.5,176.2],[-39.0,177.0],[-41.3,174.8],[-43.5,172.5],[-45.0,169.0],[-46.5,168.3],[-46.2,167.5],[-44.0,168.0],[-42.5,171.5],[-40.5,172.5],[-37.5,175.5],[-34.5,172.7]],hlMat);
-    drawPoly([[-40.5,172.6],[-41.5,173.2],[-43.0,173.0],[-43.6,172.7],[-45.0,167.5],[-46.5,168.3],[-44.5,169.2],[-40.5,172.6]],cMat);
+    for(let lon=-180;lon<180;lon+=15){
+      const pts=[];
+      for(let lat=-89;lat<=89;lat+=3) pts.push(latLonToVec3(lat,lon,GR));
+      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),gridM));
+    }
+
+    // Country/coastline outlines — highlighted = Gigablue deployment region
+    const borderM=new THREE.LineBasicMaterial({color:0x1e4a6a,transparent:true,opacity:0.7});
+    const hlM    =new THREE.LineBasicMaterial({color:0x3db8e8,transparent:true,opacity:0.85});
+    function poly(coords,mat){
+      const pts=coords.map(([la,lo])=>latLonToVec3(la,lo,GR+0.012));
+      pts.push(pts[0].clone());
+      globeMainGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),mat));
+    }
+
+    // New Zealand — North Island
+    poly([[-34.4,172.7],[-36.9,174.8],[-37.7,176.2],[-38.7,177.5],[-39.3,176.6],
+          [-40.9,175.0],[-41.3,174.8],[-41.0,173.0],[-39.5,174.5],[-37.0,175.8],[-34.4,172.7]],hlM);
+    // South Island
+    poly([[-40.5,172.7],[-42.7,171.5],[-44.0,170.5],[-45.8,170.6],[-46.5,168.4],
+          [-44.0,168.3],[-43.5,172.5],[-41.2,173.9],[-40.5,172.7]],hlM);
+
     // Australia
-    drawPoly([[-16.0,136.0],[-14.0,129.0],[-22.0,114.0],[-26.0,114.0],[-32.0,116.0],[-34.0,122.0],[-34.0,124.0],[-32.0,133.0],[-32.0,134.0],[-38.0,140.0],[-38.5,147.0],[-37.5,150.0],[-35.0,151.0],[-28.5,154.0],[-24.5,153.5],[-18.0,146.0],[-15.5,145.5],[-11.0,136.0],[-16.0,136.0]],hlMat);
-    // Chile (long thin strip)
-    drawPoly([[-18.0,-69.5],[-22.0,-68.7],[-24.0,-67.5],[-27.0,-70.0],[-30.0,-71.5],[-33.5,-71.5],[-36.0,-71.5],[-40.0,-72.5],[-43.0,-73.5],[-48.0,-75.5],[-52.0,-73.5],[-55.0,-69.0],[-52.0,-68.0],[-50.0,-73.0],[-45.0,-72.0],[-40.0,-71.5],[-35.0,-70.0],[-30.0,-70.5],[-26.0,-69.5],[-22.0,-69.5],[-18.0,-69.5]],hlMat);
-    // Alaska / USA West Coast
-    drawPoly([[71.0,-156.0],[68.0,-165.5],[64.5,-165.0],[63.0,-162.0],[60.0,-165.0],[55.0,-162.0],[55.0,-159.0],[57.0,-155.0],[59.5,-151.0],[60.0,-148.0],[59.5,-145.0],[57.0,-136.0],[55.5,-130.0],[55.5,-132.0],[57.5,-136.0],[59.0,-138.0],[60.5,-141.0],[63.0,-141.0],[64.0,-141.0],[68.0,-141.0],[70.0,-145.0],[71.0,-156.0]],cMat);
+    poly([[-13.7,130.0],[-14.0,129.0],[-21.8,114.1],[-31.7,115.7],[-33.9,121.9],
+          [-34.0,124.0],[-33.5,135.0],[-38.1,140.0],[-38.5,146.3],[-37.5,149.9],
+          [-35.0,150.8],[-28.0,153.5],[-23.5,151.3],[-18.3,146.3],[-15.4,145.3],
+          [-11.7,136.8],[-13.7,130.0]],hlM);
+
+    // Chile
+    poly([[-17.6,-69.5],[-21.5,-68.5],[-24.0,-67.6],[-27.1,-70.1],[-30.2,-71.6],
+          [-33.5,-71.6],[-36.1,-72.2],[-38.7,-73.2],[-41.5,-74.0],[-43.8,-74.5],
+          [-52.0,-74.0],[-55.0,-69.0],[-50.0,-73.5],[-45.0,-72.0],[-38.0,-71.5],
+          [-33.0,-70.5],[-26.0,-70.5],[-21.0,-70.0],[-17.6,-69.5]],hlM);
+
+    // Japan — Honshu
+    poly([[34.5,130.9],[36.2,133.2],[37.5,136.9],[38.3,140.7],[40.7,141.5],
+          [41.1,140.5],[39.9,139.1],[37.1,136.8],[35.4,133.4],[34.5,130.9]],hlM);
+    // Kyushu
+    poly([[31.0,130.1],[32.7,130.0],[33.5,130.5],[33.0,131.7],[31.4,131.0],[31.0,130.1]],borderM);
+
     // Ireland
-    drawPoly([[55.3,-7.5],[55.0,-6.2],[54.0,-5.8],[53.3,-6.0],[52.0,-6.2],[51.5,-8.5],[53.0,-10.0],[54.5,-10.0],[55.3,-7.5]],hlMat);
-    // EU / Europe (simplified outline)
-    drawPoly([[51.0,2.5],[51.5,4.0],[53.5,7.0],[55.0,9.0],[55.5,10.5],[54.0,11.0],[53.0,14.0],[50.0,18.0],[49.0,22.0],[47.5,16.5],[46.0,13.0],[44.0,12.5],[42.0,14.0],[41.0,16.0],[40.0,18.5],[38.0,16.0],[37.5,15.0],[38.0,13.0],[40.5,9.5],[43.5,3.5],[43.3,1.5],[44.5,-1.0],[47.0,-2.0],[48.5,-2.5],[50.5,-1.5],[51.0,2.5]],cMat);
-    // Japan
-    drawPoly([[31.0,131.0],[33.0,131.0],[34.0,130.5],[35.5,133.0],[36.5,136.0],[37.5,136.5],[38.5,140.0],[40.5,141.5],[41.5,140.5],[40.0,139.0],[38.0,138.0],[37.0,136.5],[36.0,136.0],[34.5,135.0],[33.5,135.0],[33.0,131.0],[31.0,131.0]],hlMat);
-    // Equator label ring (subtle)
-    globeMainGroup.add(makeRing(GR+0.01,0x1a5a8a,0.5));
+    poly([[55.3,-7.5],[55.0,-6.2],[54.0,-5.8],[52.2,-6.1],[51.5,-8.4],
+          [53.0,-10.0],[54.5,-10.0],[55.3,-7.5]],hlM);
+
+    // Western Europe (France/Spain/Portugal block)
+    poly([[48.5,-1.8],[51.1,2.5],[51.9,4.1],[53.5,7.0],[54.9,9.0],
+          [54.0,10.9],[50.2,12.0],[48.5,9.5],[47.5,7.6],[43.5,3.2],
+          [43.4,1.5],[42.5,-1.0],[41.4,-2.2],[37.9,-8.9],[36.9,-9.5],
+          [38.7,-9.4],[41.0,-8.7],[43.5,-8.0],[43.8,-1.8],[48.5,-1.8]],borderM);
+    // EU North (Germany/BeNeLux/Nordics sketch)
+    poly([[51.1,2.5],[51.9,4.1],[53.5,7.0],[54.9,9.0],[57.8,9.5],
+          [57.3,12.5],[55.7,12.6],[54.5,11.0],[54.0,10.9],[51.1,2.5]],borderM);
+
+    // Alaska
+    poly([[71.4,-156.5],[70.0,-141.0],[63.0,-141.0],[60.3,-141.0],
+          [59.5,-151.5],[57.0,-136.0],[55.5,-130.0],[55.0,-132.0],
+          [57.5,-136.0],[59.0,-138.5],[60.5,-141.0],[64.0,-141.0],
+          [68.0,-141.0],[70.0,-145.0],[71.4,-156.5]],hlM);
+
+    // Equator ring accent
+    globeMainGroup.add(makeRing(GR+0.015,0x1a6080,0.6));
+    // South Pole marker
+    globeMainGroup.add(makeRing(GR+0.005,0x0d3a55,0.4,Math.PI/2));
+
   } else {
     /* Cluster mode: orbital rings */
     globeMainGroup.add(makeRing(1.65,0x0a2a4a,0.7));
@@ -1744,12 +1786,12 @@ function buildUnifiedGlobe(){
       // Place on real-world lat/lon on the geo globe (r=1.82)
       const coords=GEO_COORDS[g.geo];
       if(coords){
-        // Count how many grants share this geo for clustering offset
+        // Spread multiple grants at same geo in a small arc
         const sameGeo=grants.filter(gg=>gg.geo===g.geo);
-        const geoIdx=sameGeo.indexOf(g);
-        const jLat=coords[0]+(geoIdx%3-1)*1.2;
-        const jLon=coords[1]+Math.floor(geoIdx/3-0.5)*2.5+(geoIdx%2)*1.5;
-        pos=latLonToVec3(jLat,jLon,2.1+geoIdx*0.04);
+        const n=sameGeo.length, idx=sameGeo.indexOf(g);
+        const spreadLat = n>1 ? (idx-(n-1)/2)*2.5 : 0;
+        const spreadLon = n>1 ? (idx%2===0?1:-1)*Math.ceil(idx/2)*2.0 : 0;
+        pos=latLonToVec3(coords[0]+spreadLat, coords[1]+spreadLon, 2.05);
       } else pos=new THREE.Vector3(g.x*1.28,g.y*1.28,g.z*1.28);
     } else {
       // Regional anchors — pipeline nodes cluster by geography
@@ -1775,7 +1817,7 @@ function buildUnifiedGlobe(){
     const r=(g.size||1)*0.1;
     // Stem line: in geo mode from surface point, in cluster mode from origin
     const stemStart=(()=>{
-      if(globeMode==='geo'){const c2=GEO_COORDS[g.geo];return c2?latLonToVec3(c2[0],c2[1],1.84):new THREE.Vector3(0,0,0);}
+      if(globeMode==='geo'){const c2=GEO_COORDS[g.geo];return c2?latLonToVec3(c2[0],c2[1],1.83):new THREE.Vector3(0,0,0);}
       return new THREE.Vector3(0,0,0);
     })();
     const spGeo=new THREE.BufferGeometry().setFromPoints([stemStart,pos.clone()]);
@@ -1808,7 +1850,7 @@ function buildUnifiedGlobe(){
     if(globeMode==='geo'){
       // Place on real-world lat/lon on geo globe (r=1.82, slightly offset outward)
       const coords=GEO_COORDS[g.region];
-      if(coords) pos=latLonToVec3(coords[0],coords[1],2.35);
+      if(coords) pos=latLonToVec3(coords[0],coords[1],2.22);
       else {
         const rx2=Math.sin(phi)*Math.cos(theta),ry2=Math.cos(phi),rz2=Math.sin(phi)*Math.sin(theta);
         pos=new THREE.Vector3(rx2*2.05,ry2*2.05,rz2*2.05);
@@ -1831,7 +1873,7 @@ function buildUnifiedGlobe(){
     }
     const r=0.07*(g.size||1);
     const discLineStart=(()=>{
-      if(globeMode==='geo'){const dc=GEO_COORDS[g.region];return dc?latLonToVec3(dc[0],dc[1],1.84):new THREE.Vector3(0,0,0);}
+      if(globeMode==='geo'){const dc=GEO_COORDS[g.region];return dc?latLonToVec3(dc[0],dc[1],1.83):new THREE.Vector3(0,0,0);}
       return new THREE.Vector3(0,0,0);
     })();
     const spGeo=new THREE.BufferGeometry().setFromPoints([discLineStart,pos.clone()]);
@@ -2067,12 +2109,12 @@ function showApiKeyPrompt(){
 // ── Globe mode toggle ──
 // Real-world lat/lon → 3D sphere position (radius r)
 function latLonToVec3(lat, lon, r){
-  const phi = (90 - lat) * Math.PI / 180;
-  const theta = (lon + 180) * Math.PI / 180;
+  const phi   = (90 - lat) * Math.PI / 180;  // 0 at N pole, PI at S pole
+  const theta = lon         * Math.PI / 180;  // 0 at prime meridian
   return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
+     r * Math.sin(phi) * Math.sin(theta),
      r * Math.cos(phi),
-     r * Math.sin(phi) * Math.sin(theta)
+     r * Math.sin(phi) * Math.cos(theta)
   );
 }
 
@@ -2104,6 +2146,9 @@ function setGlobeMode(mode){
   globeMode = mode;
   document.getElementById('gmt-cluster').classList.toggle('active', mode==='cluster');
   document.getElementById('gmt-geo').classList.toggle('active', mode==='geo');
+  // Orient globe sensibly: geo mode → Pacific view (NZ/Aus/Japan/Chile visible)
+  if(mode==='geo') { rotY=-2.1; rotX=-0.15; }
+  else             { rotY=0.3;  rotX=-0.15; }
   rebuildGlobe();
 }
 
