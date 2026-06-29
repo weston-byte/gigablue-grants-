@@ -1822,7 +1822,7 @@ const DISC_SEED = [
     {step:'MfE policy development process — may take 12–24 months'},
     {step:'Potential MCFS methodology inclusion in NZ domestic carbon framework'},
   ],
-  x:-1.0,y:-0.9,z:-0.3,size:1.0},,
+  x:-1.0,y:-0.9,z:-0.3,size:1.0},
 
   // ── NEW: US / AU / NZ / CA grants (from grant intelligence index) ──
   {id:"disc_arpa_c_ocean_cdr_progr",label:"ARPA-C Ocean CDR Program",org:"DOE Advanced Research Projects Agency for Climate (ARPA-C)",
@@ -3016,12 +3016,15 @@ function buildUnifiedGlobe(){
     } else {
       // Discovery nodes cluster by region to sit near their pipeline counterparts
       const discRegionAnchors={
-        'Chile':     [-0.7, -0.4,  0.8],
-        'Australia': [ 0.8, -0.5, -0.3],
-        'NZ':        [ 0.6,  0.1, -0.9],
-        'Alaska':    [ 0.3,  0.8,  0.6],
-        'EU':        [-0.6,  0.7, -0.4],
-        'Japan':     [ 0.9,  0.2,  0.4],
+        'Chile':        [-0.7, -0.4,  0.8],
+        'Australia':    [ 0.8, -0.5, -0.3],
+        'NZ':           [ 0.6,  0.1, -0.9],
+        'New Zealand':  [ 0.6,  0.1, -0.9],
+        'Alaska':       [ 0.3,  0.8,  0.6],
+        'Alaska / USA': [ 0.3,  0.8,  0.6],
+        'EU':           [-0.6,  0.7, -0.4],
+        'Japan':        [ 0.9,  0.2,  0.4],
+        'Canada':       [-0.2,  0.85, 0.5],
       };
       const discAnchor=discRegionAnchors[g.region]||[0.0,0.9,0.1];
       const rx=Math.sin(phi)*Math.cos(theta), ry=Math.cos(phi), rz=Math.sin(phi)*Math.sin(theta);
