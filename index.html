@@ -249,7 +249,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .repo-filter-sep{width:1px;height:16px;background:var(--border);flex-shrink:0}
 .repo-sort{background:var(--bg2);border:1px solid var(--border);color:var(--textD);font-family:'Courier New',monospace;font-size:9px;padding:4px 8px;border-radius:3px;cursor:pointer;margin-left:auto}
 .repo-list{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
-.repo-row{display:grid;grid-template-columns:1fr 120px 140px 80px 72px 70px 28px;align-items:center;gap:12px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent}
+.repo-row{display:grid;grid-template-columns:1fr 120px 140px 80px 72px 70px 28px 28px;align-items:center;gap:12px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent}
 .repo-row:hover{background:var(--bg2);border-color:var(--borderB)}
 .repo-row.selected{background:var(--bg2);border-left-color:var(--cyan)}
 .repo-row-label{font-size:11px;color:var(--text);font-family:'Courier New',monospace;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -263,7 +263,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .repo-source-tag{font-size:8px;letter-spacing:1px;padding:1px 5px;border-radius:2px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);color:#34d399;margin-left:6px}
 .repo-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--textF);font-size:9px;letter-spacing:2px}
 @media(max-width:700px){
-  .repo-row{grid-template-columns:1fr 80px 60px 28px}
+  .repo-row{grid-template-columns:1fr 80px 60px 28px 28px}
   .repo-row-fund,.repo-row-bar,.repo-row-team{display:none}
   .repo-col-hdr{grid-template-columns:1fr 80px 60px}
   .repo-col-hdr span:nth-child(n+4){display:none}
@@ -502,6 +502,36 @@ textarea.em-inp{resize:vertical;min-height:64px;line-height:1.65}
   .em-grid.g3{grid-template-columns:1fr 1fr}
 }
 
+
+/* ── Promote / Move modal ── */
+#promote-modal{display:none;position:fixed;inset:0;background:rgba(2,8,16,0.88);z-index:8500;align-items:center;justify-content:center}
+#promote-modal.visible{display:flex}
+.pm-box{background:var(--bg1);border:1px solid var(--border);border-radius:6px;width:100%;max-width:420px;margin:auto}
+.pm-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border)}
+.pm-title{font-size:9px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;font-weight:700}
+.pm-close{background:transparent;border:none;color:var(--textF);font-size:16px;cursor:pointer;padding:2px 6px;line-height:1;transition:color 0.15s}
+.pm-close:hover{color:var(--text)}
+.pm-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.pm-label{font-size:7px;letter-spacing:2px;color:var(--cyan);opacity:0.7;text-transform:uppercase;display:block;margin-bottom:4px}
+.pm-inp{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:8px 10px;border-radius:3px;outline:none;width:100%;box-sizing:border-box;transition:border-color 0.12s}
+.pm-inp:focus{border-color:var(--cyan)}
+.pm-inp option{background:var(--bg1)}
+select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%232a5070' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.pm-grant-name{font-size:12px;color:var(--text);font-family:'Courier New',monospace;font-weight:700;padding:8px 10px;background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.12);border-radius:3px;line-height:1.4}
+.pm-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border)}
+.pm-confirm{background:var(--cyan);color:#020810;font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;font-weight:700;padding:8px 20px;border:none;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s}
+.pm-confirm:hover{background:#38bdf8}
+.pm-cancel{background:transparent;border:1px solid var(--border);color:var(--textF);font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;padding:8px 14px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s}
+.pm-cancel:hover{border-color:var(--textD);color:var(--text)}
+.disc-promote-btn{background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.3);color:var(--cyan);font-family:'Courier New',monospace;font-size:7px;letter-spacing:2px;padding:5px 12px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s;white-space:nowrap}
+.disc-promote-btn:hover{background:rgba(79,195,247,0.18);border-color:var(--cyan)}
+.ph-demote-btn{background:transparent;border:1px solid rgba(79,195,247,0.25);color:rgba(79,195,247,0.5);font-family:'Courier New',monospace;font-size:7px;letter-spacing:2px;padding:4px 10px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s;white-space:nowrap}
+.ph-demote-btn:hover{background:rgba(79,195,247,0.08);border-color:var(--cyan);color:var(--cyan)}
+
+/* Repo move/promote button */
+.repo-move-btn{background:transparent;border:none;color:rgba(79,195,247,0.4);font-size:11px;
+  cursor:pointer;padding:3px 5px;border-radius:3px;transition:all 0.15s;line-height:1}
+.repo-move-btn:hover{color:var(--cyan);background:rgba(79,195,247,0.1)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -630,13 +660,14 @@ textarea.em-inp{resize:vertical;min-height:64px;line-height:1.65}
           <option value="geo">A–Z Region</option>
         </select>
       </div>
-      <div class="repo-col-hdr" style="grid-template-columns:1fr 120px 140px 80px 72px 70px 28px">
+      <div class="repo-col-hdr" style="grid-template-columns:1fr 120px 140px 80px 72px 70px 28px 28px">
         <span>Grant / Programme</span>
         <span>Region</span>
         <span>Fund Size</span>
         <span>Status</span>
         <span>Team</span>
         <span>Readiness</span>
+        <span></span>
         <span></span>
       </div>
       <div class="repo-list" id="repo-list"></div>
@@ -1081,6 +1112,7 @@ textarea.em-inp{resize:vertical;min-height:64px;line-height:1.65}
         </div>
         <div id="ph-delete-strip" style="display:none;padding:4px 16px 6px;justify-content:space-between;align-items:center">
           <button style="background:transparent;border:1px solid rgba(79,195,247,0.3);color:rgba(79,195,247,0.7);font-family:'Courier New',monospace;font-size:7px;letter-spacing:2px;padding:4px 12px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='rgba(79,195,247,0.3)';this.style.color='rgba(79,195,247,0.7)'" onclick="editOpen(selectedId)">✎ &nbsp;Edit</button>
+          <button class="ph-demote-btn" id="ph-demote-btn" onclick="demoteOpen(selectedId)">↓ Move to Discovery</button>
           <button class="ph-delete-btn" id="ph-delete-btn" onclick="deleteGrantPrompt(selectedId)">
             ✕ &nbsp;Remove
           </button>
@@ -1104,11 +1136,14 @@ textarea.em-inp{resize:vertical;min-height:64px;line-height:1.65}
             <span class="status-badge" id="disc-type" style="font-size:9px"></span>
             <span style="font-size:9px;color:var(--textD)" id="disc-fund"></span>
           </div>
-          <div class="tab-row" style="margin-top:10px">
-            <button class="tab-btn disc-tab active" data-dtab="overview" onclick="switchDiscTab('overview')">Overview</button>
-            <button class="tab-btn disc-tab" data-dtab="actions" onclick="switchDiscTab('actions')">Actions</button>
-            <button class="tab-btn disc-tab" data-dtab="contacts" onclick="switchDiscTab('contacts')">Contacts</button>
-            <button class="tab-btn disc-tab" data-dtab="process" onclick="switchDiscTab('process')">Process</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px">
+            <div class="tab-row" style="margin-top:0">
+              <button class="tab-btn disc-tab active" data-dtab="overview" onclick="switchDiscTab('overview')">Overview</button>
+              <button class="tab-btn disc-tab" data-dtab="actions" onclick="switchDiscTab('actions')">Actions</button>
+              <button class="tab-btn disc-tab" data-dtab="contacts" onclick="switchDiscTab('contacts')">Contacts</button>
+              <button class="tab-btn disc-tab" data-dtab="process" onclick="switchDiscTab('process')">Process</button>
+            </div>
+            <button class="disc-promote-btn" onclick="promoteOpen(discSelected)">↑ Promote</button>
           </div>
         </div>
         <div class="content" id="disc-content"></div>
@@ -1291,6 +1326,53 @@ textarea.em-inp{resize:vertical;min-height:64px;line-height:1.65}
       <span class="em-saved-msg" id="em-saved-msg" style="display:none">✓ Changes saved</span>
       <button class="em-cancel" onclick="editClose()">Cancel</button>
       <button class="em-save" onclick="editSave()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Promote / Move Grant Modal -->
+<div id="promote-modal">
+  <div class="pm-box">
+    <div class="pm-hdr">
+      <div class="pm-title" id="pm-title">↑ Promote to Pipeline</div>
+      <button class="pm-close" onclick="promoteClose()">✕</button>
+    </div>
+    <div class="pm-body">
+      <div>
+        <div class="pm-label">Grant</div>
+        <div class="pm-grant-name" id="pm-grant-name"></div>
+      </div>
+      <div id="pm-status-field">
+        <label class="pm-label" for="pm-status" id="pm-status-label">Assign to Status</label>
+        <select class="pm-inp" id="pm-status">
+          <option value="pursue">🟠 Pursue Now</option>
+          <option value="highpot">🔵 High Potential</option>
+          <option value="watch">🟣 Watch / Develop</option>
+          <option value="future">⚫ Future 2027+</option>
+        </select>
+      </div>
+      <div id="pm-owner-field">
+        <label class="pm-label" for="pm-owner">Internal Owner / Lead</label>
+        <input class="pm-inp" id="pm-owner" type="text" placeholder="e.g. West, Ori, Sarah" />
+      </div>
+      <div id="pm-note-field">
+        <label class="pm-label" for="pm-note">Standing Note</label>
+        <input class="pm-inp" id="pm-note" type="text" placeholder="e.g. Promoted from discovery — no contact yet" />
+      </div>
+      <div id="pm-disc-type-field" style="display:none">
+        <label class="pm-label" for="pm-disc-type">Discovery Type</label>
+        <select class="pm-inp" id="pm-disc-type">
+          <option value="nondilutive">Non-dilutive</option>
+          <option value="dilutive">Dilutive</option>
+          <option value="blended">Blended</option>
+          <option value="partnership">Partnership</option>
+        </select>
+      </div>
+    </div>
+    <div class="pm-foot">
+      <button class="pm-cancel" onclick="promoteClose()">Cancel</button>
+      <button class="pm-confirm" id="pm-confirm-btn" onclick="promoteConfirm()">↑ Promote</button>
     </div>
   </div>
 </div>
@@ -3568,6 +3650,7 @@ function renderRepo(){
       ${r.source==='pipeline'&&!['investchile','ley_id','bilateral','fondef','icrag','inach','sa_gov','vic_gov','bezos','gore','crea_valida','accu','corfo_biotech'].includes(r.id)
         ?`<button class="repo-delete-btn" onclick="event.stopPropagation();deleteGrantPrompt('${r.id}')" title="Remove vector">✕</button>`
         :'<div></div>'}
+      <button class="repo-move-btn" onclick="event.stopPropagation();repoMoveOpen('${r.id}','${r.source}')" title="${r.source==='pipeline'?'Change status or move':'Promote to pipeline'}">⇅</button>
     </div>
   `).join('');
 }
@@ -4300,6 +4383,169 @@ document.addEventListener('keydown', e=>{
 
 // init() is ONLY called from authComplete() — never on page load
 // This ensures zero data access before authentication
+
+// ══════════════════════════════════════════════════
+// PROMOTE / MOVE / DEMOTE — all directions, all views
+// ══════════════════════════════════════════════════
+let _promoteId   = null;
+let _promoteMode = 'promote';
+
+function _pmOpen(mode, id, label, currentStatus){
+  _promoteId=id; _promoteMode=mode;
+  document.getElementById('pm-grant-name').textContent=label;
+  document.getElementById('pm-status-field').style.display='';
+  document.getElementById('pm-owner-field').style.display='';
+  document.getElementById('pm-note-field').style.display='';
+  document.getElementById('pm-disc-type-field').style.display='none';
+  if(mode==='promote'){
+    document.getElementById('pm-title').textContent='↑ Promote to Pipeline';
+    document.getElementById('pm-status-label').textContent='Assign to Status';
+    document.getElementById('pm-status').value='pursue';
+    document.getElementById('pm-owner').value='';
+    document.getElementById('pm-note').value='Promoted from discovery';
+    document.getElementById('pm-confirm-btn').textContent='↑ Promote to Pipeline';
+  } else if(mode==='move'){
+    document.getElementById('pm-title').textContent='⇅ Change Status';
+    document.getElementById('pm-status-label').textContent='Move to Status';
+    document.getElementById('pm-status').value=currentStatus||'watch';
+    document.getElementById('pm-owner').value='';
+    document.getElementById('pm-note').value='';
+    document.getElementById('pm-confirm-btn').textContent='⇅ Apply Change';
+  } else {
+    document.getElementById('pm-title').textContent='↓ Move to Discovery';
+    document.getElementById('pm-status-field').style.display='none';
+    document.getElementById('pm-owner-field').style.display='none';
+    document.getElementById('pm-note-field').style.display='none';
+    document.getElementById('pm-disc-type-field').style.display='';
+    document.getElementById('pm-disc-type').value='nondilutive';
+    document.getElementById('pm-confirm-btn').textContent='↓ Move to Discovery';
+  }
+  document.getElementById('promote-modal').classList.add('visible');
+  setTimeout(()=>document.getElementById(mode==='demote'?'pm-disc-type':'pm-owner')?.focus(),120);
+}
+
+function promoteOpen(id){const g=DISC_SEED.find(d=>d.id===id);if(!g)return;_pmOpen('promote',id,g.label,null);}
+function demoteOpen(id){const g=grants.find(g=>g.id===id);if(!g)return;_pmOpen('demote',id,g.label,g.status);}
+function moveOpen(id){const g=grants.find(g=>g.id===id);if(!g)return;_pmOpen('move',id,g.label,g.status);}
+
+function repoMoveOpen(id,source){
+  if(source==='discovery'){
+    const g=DISC_SEED.find(d=>d.id===id);if(!g)return;
+    _pmOpen('promote',id,g.label,null);
+  } else {
+    const g=grants.find(g=>g.id===id);if(!g)return;
+    _promoteId=id; _promoteMode='repoMove';
+    document.getElementById('pm-grant-name').textContent=g.label;
+    document.getElementById('pm-title').textContent='⇅ Move Grant';
+    document.getElementById('pm-status-label').textContent='Move to Pipeline Status';
+    document.getElementById('pm-status-field').style.display='';
+    document.getElementById('pm-owner-field').style.display='none';
+    document.getElementById('pm-note-field').style.display='none';
+    document.getElementById('pm-disc-type-field').style.display='';
+    document.getElementById('pm-status').value=g.status;
+    document.getElementById('pm-disc-type').value='nondilutive';
+    document.getElementById('pm-confirm-btn').textContent='⇅ Apply';
+    document.getElementById('promote-modal').classList.add('visible');
+    setTimeout(()=>document.getElementById('pm-status').focus(),120);
+  }
+}
+
+function promoteClose(){
+  _promoteId=null;
+  document.getElementById('promote-modal').classList.remove('visible');
+}
+
+function promoteConfirm(){
+  if(!_promoteId)return;
+  const newStatus=document.getElementById('pm-status').value||'pursue';
+  const discType=document.getElementById('pm-disc-type').value||'nondilutive';
+  const fromRepo=document.getElementById('repo-view').classList.contains('visible');
+
+  function reposition(g,st){
+    const anchors={pursue:[0.0,0.7,0.7],highpot:[0.7,0.3,-0.6],watch:[-0.7,-0.2,-0.7],future:[0.0,-0.9,0.4]};
+    const anc=anchors[st]||anchors.future;
+    const jitter=()=>(Math.random()-0.5)*0.55;
+    const nx=anc[0]+jitter(),ny=anc[1]+jitter(),nz=anc[2]+jitter();
+    const nm=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+    g.x=nx/nm;g.y=ny/nm;g.z=nz/nm;
+  }
+
+  if(_promoteMode==='promote'){
+    const disc=DISC_SEED.find(d=>d.id===_promoteId);if(!disc){promoteClose();return;}
+    const owner=document.getElementById('pm-owner').value.trim();
+    const note=document.getElementById('pm-note').value.trim();
+    const promoId='promo_'+disc.id;
+    const existIdx=grants.findIndex(g=>g.id===promoId||g.label===disc.label);
+    if(existIdx>=0){
+      grants[existIdx].status=newStatus;
+      reposition(grants[existIdx],newStatus);
+      if(owner) grants[existIdx].owner=owner;
+    } else {
+      const ng={id:promoId,label:disc.label,funder:disc.org||'',geo:disc.geo,
+        grantType:'Non-dilutive grant',status:newStatus,url:disc.url||'',
+        fundSize:disc.fundSize||'—',deadline:disc.deadline||'—',
+        timeline:disc.deadline||'—',desc:disc.desc||'',eligibility:disc.eligibility||'',
+        relevance:disc.fit||'',standing:note||'Promoted from discovery.',owner,
+        readiness:disc.readiness||40,urgency:disc.urgency||50,progress:0,
+        tags:disc.tags||[],actions:(disc.actions||[]).map(a=>({t:a.t||a,u:false})),
+        contacts:(disc.contacts||[]).map(c=>({...c})),
+        metrics:[{k:'Promoted',v:new Date().toLocaleDateString('en-GB')},{k:'Source',v:'Discovery → Pipeline'},
+          ...(disc.fundSize?[{k:'Fund size',v:disc.fundSize}]:[]),
+          ...(disc.deadline?[{k:'Deadline',v:disc.deadline}]:[])],
+        analytics:{successProb:50,competition:'Medium',strategicFit:70,roiScore:'High',
+          compType:'Promoted',risks:[],dependencies:[],keyStrengths:(disc.tags||[]).slice(0,3),
+          recommendedActions:(disc.actions||[]).slice(0,3).map(a=>a.t||a),
+          strategicInsight:disc.fit||disc.desc||''},
+        notes:'',size:1.0+Math.random()*0.3,addedAt:Date.now()};
+      reposition(ng,newStatus);
+      grants.push(ng);
+    }
+    saveGrants();rebuildGlobe();updateStats();
+    promoteClose();
+    if(fromRepo){buildRepoFilters();renderRepo();}
+    else{switchView('globe');setTimeout(()=>{const f=grants.find(g=>g.id===promoId||g.label===disc.label);if(f)selectGrant(f.id);},400);}
+
+  } else if(_promoteMode==='move'||_promoteMode==='repoMove'){
+    const g=grants.find(g=>g.id===_promoteId);if(!g){promoteClose();return;}
+    g.status=newStatus;
+    reposition(g,newStatus);
+    saveGrants();rebuildGlobe();updateStats();
+    promoteClose();
+    if(fromRepo){buildRepoFilters();renderRepo();}
+    else{renderNodePicker();renderPanelHeader();renderContent();switchView('globe');setTimeout(()=>selectGrant(g.id),400);}
+
+  } else {
+    const g=grants.find(g=>g.id===_promoteId);if(!g){promoteClose();return;}
+    const alreadyDisc=DISC_SEED.find(d=>d.label===g.label||d.id==='promo_'+g.id||g.id==='promo_'+d.id);
+    if(!alreadyDisc){
+      const jitter=()=>(Math.random()-0.5)*0.6;
+      DISC_SEED.push({id:'disc_moved_'+g.id,label:g.label,org:g.funder||'',geo:g.geo,
+        region:g.geo.split('/')[0].trim(),type:discType,
+        fundSize:g.fundSize||'—',deadline:g.deadline||'—',
+        eligibility:g.eligibility||'',desc:g.desc||'',
+        fit:g.relevance||g.analytics?.strategicInsight||'',
+        tags:g.tags||[],url:g.url||'',readiness:g.readiness||40,urgency:g.urgency||50,
+        standing:'Moved from pipeline — '+new Date().toLocaleDateString('en-GB'),
+        actions:(g.actions||[]).map(a=>({t:a.t||a,u:false})),contacts:[],process:[],
+        x:jitter(),y:0.8+jitter()*0.3,z:jitter(),size:1.0});
+    }
+    grants=grants.filter(gr=>gr.id!==_promoteId);
+    if(owners[_promoteId]){delete owners[_promoteId];saveOwners();}
+    if(comments[_promoteId]){delete comments[_promoteId];saveComments();}
+    saveGrants();rebuildGlobe();updateStats();
+    selectedId=grants.length?grants[0].id:null;
+    if(selectedId){renderNodePicker();renderPanelHeader();renderContent();renderHdrOwners();}
+    else{document.getElementById('panel-filled').style.display='none';document.getElementById('panel-empty').style.display='flex';}
+    if(fromRepo){buildRepoFilters();renderRepo();}
+    promoteClose();
+  }
+}
+
+document.addEventListener('click',e=>{if(e.target.id==='promote-modal')promoteClose();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('promote-modal').classList.contains('visible'))promoteClose();
+});
+
 function authComplete(){
   // Gate: double-check auth token before allowing init
   const tok = sessionStorage.getItem('gb_auth');
