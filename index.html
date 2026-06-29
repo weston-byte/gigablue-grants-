@@ -129,6 +129,29 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .inp:focus{border-color:var(--cyan)}
 .btn-assign{background:rgba(79,195,247,0.15);border:1px solid var(--cyan);border-radius:6px;padding:7px 14px;font-size:10px;color:var(--cyan);cursor:pointer;font-weight:700;letter-spacing:1.5px;font-family:'Courier New',monospace;white-space:nowrap;transition:all 0.2s}
 .btn-assign:hover{background:rgba(79,195,247,0.28);color:#fff}
+.ta{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--border);
+  color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:9px 12px;
+  border-radius:3px;outline:none;resize:vertical;line-height:1.65;transition:border-color 0.12s}
+.ta:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(79,195,247,0.07)}
+.ta::placeholder{color:var(--textF);opacity:0.5}
+/* Progress slider in Progress Log tab */
+.prog-slider-wrap{margin-bottom:18px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:4px}
+.prog-slider-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.prog-slider-lbl{font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase}
+.prog-slider-val{font-size:16px;font-weight:700;font-family:'Courier New',monospace;color:var(--cyan)}
+.prog-slider-track{width:100%;height:8px;background:var(--bg3);border-radius:4px;position:relative;cursor:pointer;margin-bottom:8px}
+.prog-slider-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),#38bdf8);transition:width 0.15s}
+.prog-slider-handle{width:16px;height:16px;background:var(--cyan);border-radius:50%;position:absolute;top:50%;
+  transform:translate(-50%,-50%);cursor:grab;box-shadow:0 0 8px rgba(79,195,247,0.6);transition:box-shadow 0.15s}
+.prog-slider-handle:active{cursor:grabbing;box-shadow:0 0 14px rgba(79,195,247,0.9)}
+.prog-milestones{display:flex;justify-content:space-between;margin-top:4px}
+.prog-milestone{font-size:7px;color:var(--textF);letter-spacing:0.5px;text-align:center;cursor:pointer;transition:color 0.12s}
+.prog-milestone:hover,.prog-milestone.active{color:var(--cyan)}
+.prog-step-btns{display:flex;gap:6px;margin-top:10px}
+.prog-step-btn{flex:1;padding:5px 0;background:transparent;border:1px solid var(--border);color:var(--textF);
+  font-family:'Courier New',monospace;font-size:8px;letter-spacing:1px;border-radius:3px;cursor:pointer;
+  text-transform:uppercase;transition:all 0.15s}
+.prog-step-btn:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(79,195,247,0.06)}
 .btn-commit{width:100%;padding:8px;font-size:10px;letter-spacing:2px;margin-top:8px;background:rgba(79,195,247,0.12);border:1px solid var(--borderB);border-radius:6px;color:var(--cyan);cursor:pointer;font-weight:700;font-family:'Courier New',monospace;transition:all 0.2s}
 .btn-commit:hover{background:rgba(79,195,247,0.24);border-color:var(--cyan);color:#fff}
 .empty-state{padding:20px 0;text-align:center;color:var(--textF);font-size:11px;letter-spacing:0.5px}
@@ -170,6 +193,8 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .disc-link-btn:hover{background:rgba(52,211,153,0.2);border-color:var(--green)}
 
 /* Mobile */
+/* Back-to-globe never shows on desktop */
+#back-to-globe{display:none}
 @media(max-width:700px){
   html,body{overflow:auto;height:auto}
   .wrap{min-height:100dvh}
@@ -322,7 +347,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .ag-title{font-size:11px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;font-weight:700}
 .ag-subtitle{font-size:8px;letter-spacing:1.5px;color:var(--textF);text-transform:uppercase}
 .ag-section{margin-bottom:20px}
-.ag-section-label{font-size:7px;letter-spacing:3px;color:rgba(79,195,247,0.45);text-transform:uppercase;
+.ag-section-label{font-size:7px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;
   margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.035);
   display:flex;align-items:center;gap:8px}
 .ag-section-label::after{content:'';flex:1;height:1px;background:rgba(79,195,247,0.06)}
@@ -330,7 +355,7 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 .ag-grid.g1{grid-template-columns:1fr}
 .ag-grid.g3{grid-template-columns:1fr 1fr 1fr}
 .ag-field{display:flex;flex-direction:column;gap:4px}
-.ag-label{font-size:7px;letter-spacing:2px;color:var(--textF);text-transform:uppercase}
+.ag-label{font-size:7px;letter-spacing:2px;color:var(--cyan);opacity:0.7;text-transform:uppercase}
 .ag-label span{color:var(--cyan)}
 .ag-inp{background:var(--bg2);border:1px solid var(--border);color:var(--text);
   font-family:'Courier New',monospace;font-size:11px;padding:8px 11px;border-radius:3px;
@@ -1765,13 +1790,40 @@ function renderContent(){
   }
   if(activeTab==='progress'){
     const sorted=[...gComments].reverse();
-    el.innerHTML=`<div class="sec-label">Progress log<span class="sec-line"></span><span style="color:var(--textF);font-size:9px">${gComments.length} entries</span></div>
+    const curProg=g.progress||0;
+    const MILESTONES=[['Identified',10],['Researching',25],['Engaged',50],['Applied',75],['Awarded',100]];
+    const activeMilestone=MILESTONES.reduce((best,[lbl,val])=>curProg>=val?lbl:best,'');
+    el.innerHTML=`
+      <!-- Interactive progress slider -->
+      <div class="prog-slider-wrap">
+        <div class="prog-slider-hdr">
+          <span class="prog-slider-lbl">Pursuit Progress</span>
+          <span class="prog-slider-val" id="ps-val">${curProg}%</span>
+        </div>
+        <div class="prog-slider-track" id="ps-track">
+          <div class="prog-slider-fill" id="ps-fill" style="width:${curProg}%"></div>
+          <div class="prog-slider-handle" id="ps-handle" style="left:${curProg}%"></div>
+        </div>
+        <div class="prog-milestones">
+          ${MILESTONES.map(([lbl,val])=>`<span class="prog-milestone${curProg>=val?' active':''}" onclick="progSetMilestone('${g.id}',${val})">${lbl}</span>`).join('')}
+        </div>
+        <div class="prog-step-btns">
+          <button class="prog-step-btn" onclick="progStep('${g.id}',-5)">− 5%</button>
+          <button class="prog-step-btn" onclick="progStep('${g.id}',-1)">− 1%</button>
+          <button class="prog-step-btn" onclick="progStep('${g.id}',1)">+ 1%</button>
+          <button class="prog-step-btn" onclick="progStep('${g.id}',5)">+ 5%</button>
+          <button class="prog-step-btn" onclick="progStep('${g.id}',10)">+ 10%</button>
+        </div>
+      </div>
+      <div class="sec-label">Progress log<span class="sec-line"></span><span style="color:var(--textF);font-size:9px">${gComments.length} entr${gComments.length===1?'y':'ies'}</span></div>
       ${sorted.length===0?'<div class="empty-state">No progress entries yet.</div>':''}
       ${sorted.map((c,i)=>`<div class="log-entry${i===0?' latest':''}" style="border-left-color:${i===0?s.color:'var(--border)'}"><div class="log-top"><span class="log-ts" style="color:${s.color}">${fmt(c.ts)}</span><button class="rm-btn" onclick="removeComment('${c.id}')">Remove</button></div><p class="log-text${i===0?' latest':''}">${c.text}</p></div>`).join('')}
       <div class="sec-label" style="margin-top:14px">Log update<span class="sec-line"></span></div>
       <textarea id="comment-ta" class="ta" rows="3" placeholder="Describe a development, meeting outcome, status change, or next step..."></textarea>
       <button class="btn-commit" onclick="addComment()">COMMIT ENTRY</button>
       <div class="gmail-note"><div class="gmail-note-t">Gmail Integration — Hosting Required</div><p class="gmail-note-b">When hosted and connected to your Gigablue Google Workspace via OAuth, an AI agent will automatically scan relevant emails and log developments to each vector.</p></div>`;
+    // Attach drag events to the slider after render
+    requestAnimationFrame(()=>initProgSlider('${g.id}'));
   }
 }
 
@@ -3055,6 +3107,72 @@ function agClearForm(){
   const panel=document.getElementById('ag-ai-panel');
   if(panel){panel.classList.remove('visible');}
   _agAI=null;
+}
+
+
+// ── Progress slider functions ──────────────────────────────────────────────
+function progApply(id, pct){
+  pct = Math.max(0, Math.min(100, Math.round(pct)));
+  const g = grants.find(g=>g.id===id);
+  if(!g) return;
+  g.progress = pct;
+  saveGrants();
+  // Update live slider DOM
+  const fill = document.getElementById('ps-fill');
+  const handle = document.getElementById('ps-handle');
+  const val = document.getElementById('ps-val');
+  if(fill)   fill.style.width  = pct + '%';
+  if(handle) handle.style.left = pct + '%';
+  if(val)    val.textContent   = pct + '%';
+  // Refresh milestones active state
+  document.querySelectorAll('.prog-milestone').forEach(el=>{
+    const v = parseInt(el.getAttribute('onclick').match(/,(\d+)\)/)[1]);
+    el.classList.toggle('active', pct >= v);
+  });
+  // Refresh readiness bar in overview if visible
+  const overviewFill = document.getElementById('prog-fill-'+id);
+  if(overviewFill) overviewFill.style.width = pct + '%';
+}
+
+function progStep(id, delta){
+  const g = grants.find(g=>g.id===id);
+  if(!g) return;
+  progApply(id, (g.progress||0) + delta);
+}
+
+function progSetMilestone(id, pct){
+  progApply(id, pct);
+}
+
+function initProgSlider(id){
+  const track  = document.getElementById('ps-track');
+  const handle = document.getElementById('ps-handle');
+  if(!track || !handle) return;
+  let dragging = false;
+
+  function pctFromEvent(e){
+    const rect = track.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(0, Math.min(100, (cx - rect.left) / rect.width * 100));
+  }
+
+  track.addEventListener('click', e=>{
+    progApply(id, pctFromEvent(e));
+  });
+  handle.addEventListener('mousedown', e=>{
+    dragging = true; e.preventDefault();
+  });
+  handle.addEventListener('touchstart', e=>{
+    dragging = true;
+  },{passive:true});
+  document.addEventListener('mousemove', e=>{
+    if(dragging) progApply(id, pctFromEvent(e));
+  });
+  document.addEventListener('touchmove', e=>{
+    if(dragging) progApply(id, pctFromEvent(e));
+  },{passive:true});
+  document.addEventListener('mouseup',  ()=>{ dragging=false; });
+  document.addEventListener('touchend', ()=>{ dragging=false; });
 }
 
 
