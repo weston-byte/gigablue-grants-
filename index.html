@@ -242,7 +242,24 @@ html,body{background:var(--bg0);font-family:'Courier New',monospace;height:100%;
 /* ── Repository view ── */
 #repo-view{display:none;flex:1;overflow:hidden;flex-direction:column}
 #repo-view.visible{display:flex}
-.repo-filters{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg1);flex-wrap:wrap;flex-shrink:0}
+#team-view{display:none;flex:1;overflow-y:auto;flex-direction:column;padding:24px 28px 40px}
+#team-view.visible{display:flex}
+.repo-filter-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg1);flex-shrink:0}
+.repo-filter-tab{display:flex;align-items:center;gap:8px;background:var(--bg2);
+  border:1px solid var(--cyan);color:var(--cyan);font-family:'Courier New',monospace;
+  font-size:9px;letter-spacing:2px;font-weight:700;padding:9px 16px;border-radius:4px;
+  cursor:pointer;text-transform:uppercase;transition:all 0.18s;box-shadow:0 0 0 0 rgba(79,195,247,0.3)}
+.repo-filter-tab:hover{background:rgba(79,195,247,0.12);box-shadow:0 0 12px 0 rgba(79,195,247,0.25)}
+.repo-filter-tab.open{background:rgba(79,195,247,0.16)}
+.rft-icon{font-size:10px;opacity:0.8}
+.rft-badge{background:var(--cyan);color:#020810;font-size:8px;font-weight:700;
+  border-radius:10px;padding:1px 7px;letter-spacing:0;margin-left:2px}
+.rft-chevron{font-size:10px;margin-left:2px;transition:transform 0.2s}
+.repo-filter-tab.open .rft-chevron{transform:rotate(180deg)}
+.repo-filters{display:none;align-items:center;gap:8px;padding:10px 16px;
+  border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;flex-shrink:0}
+.repo-filters.open{display:flex}
 .repo-filter-label{font-size:8px;letter-spacing:2px;color:var(--textF);text-transform:uppercase;white-space:nowrap}
 .repo-filter{background:var(--bg2);border:1px solid var(--border);color:var(--textD);font-family:'Courier New',monospace;font-size:9px;padding:4px 8px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all 0.15s}
 .repo-filter.active{background:rgba(79,195,247,0.12);border-color:var(--cyan);color:var(--cyan)}
@@ -532,6 +549,98 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .repo-move-btn{background:transparent;border:none;color:rgba(79,195,247,0.4);font-size:11px;
   cursor:pointer;padding:3px 5px;border-radius:3px;transition:all 0.15s;line-height:1}
 .repo-move-btn:hover{color:var(--cyan);background:rgba(79,195,247,0.1)}
+
+/* ══════════════ TEAM / PROJECTS ══════════════ */
+.repo-view-toggle{display:flex;gap:6px;margin-bottom:12px}
+.rvt-btn{background:transparent;border:1px solid var(--border);color:var(--textF);
+  font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;padding:7px 16px;
+  border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s}
+.rvt-btn.active{background:rgba(79,195,247,0.1);border-color:var(--cyan);color:var(--cyan)}
+.rvt-btn:hover:not(.active){border-color:var(--textD);color:var(--text)}
+
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:4px 0}
+.team-card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:16px;
+  cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;gap:10px}
+.team-card:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.team-card-top{display:flex;align-items:center;gap:10px}
+.team-card-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:700;color:#020810;flex-shrink:0}
+.team-card-name{font-size:13px;color:var(--text);font-weight:700}
+.team-card-count{font-size:8px;color:var(--textF);letter-spacing:1px;text-transform:uppercase}
+.team-card-stats{display:flex;gap:10px;font-size:8px;color:var(--textF);letter-spacing:0.5px}
+.team-card-stat-val{color:var(--cyan);font-weight:700;font-size:11px}
+.team-empty{padding:60px 20px;text-align:center;color:var(--textF);font-size:10px;letter-spacing:1px}
+
+/* Person detail panel */
+#team-detail{display:none;flex-direction:column;gap:0}
+#team-detail.visible{display:flex}
+.td-back{background:transparent;border:none;color:var(--textF);font-family:'Courier New',monospace;
+  font-size:8px;letter-spacing:2px;cursor:pointer;padding:6px 0 12px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;transition:color 0.15s}
+.td-back:hover{color:var(--cyan)}
+.td-hdr{display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--border);
+  margin-bottom:18px}
+.td-avatar{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;color:#020810;flex-shrink:0}
+.td-name{font-size:16px;color:var(--text);font-weight:700;margin-bottom:3px}
+.td-sub{font-size:9px;color:var(--textF);letter-spacing:1px;text-transform:uppercase}
+.td-section-title{font-size:8px;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;
+  margin:22px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(79,195,247,0.1);
+  display:flex;align-items:center;gap:8px;justify-content:space-between}
+.td-section-title:first-of-type{margin-top:0}
+.td-grant-list{display:flex;flex-direction:column;gap:8px}
+.td-grant-row{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--border);
+  border-radius:4px;padding:10px 14px;cursor:pointer;transition:all 0.15s;
+  display:flex;justify-content:space-between;align-items:center;gap:12px}
+.td-grant-row:hover{border-color:var(--cyan)}
+.td-grant-name{font-size:11px;color:var(--text);font-weight:700;margin-bottom:2px}
+.td-grant-meta{font-size:8px;color:var(--textF);letter-spacing:0.5px}
+.td-grant-role{font-size:7px;letter-spacing:1px;color:var(--textF);text-transform:uppercase;
+  padding:2px 8px;border:1px solid var(--border);border-radius:10px;white-space:nowrap}
+
+/* AI priority panel */
+.td-ai-box{background:rgba(79,195,247,0.04);border:1px solid rgba(79,195,247,0.15);border-radius:6px;
+  padding:16px 18px}
+.td-ai-btn{background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.35);color:var(--cyan);
+  font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;padding:7px 16px;
+  border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all 0.18s}
+.td-ai-btn:hover{background:rgba(79,195,247,0.18)}
+.td-ai-btn:disabled{opacity:0.4;cursor:not-allowed}
+.td-ai-status{font-size:9px;color:var(--cyan);letter-spacing:1px;display:flex;align-items:center;gap:8px;padding:6px 0}
+.td-ai-spin{width:9px;height:9px;border:1.5px solid rgba(79,195,247,0.3);border-top-color:var(--cyan);
+  border-radius:50%;animation:tdspin 0.65s linear infinite;flex-shrink:0}
+@keyframes tdspin{to{transform:rotate(360deg)}}
+.td-task{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.td-task:last-child{border-bottom:none}
+.td-task-urgency{width:6px;border-radius:3px;flex-shrink:0;align-self:stretch;min-height:24px}
+.td-task-body{flex:1}
+.td-task-title{font-size:11px;color:var(--text);margin-bottom:3px;line-height:1.5}
+.td-task-grant{font-size:8px;color:var(--cyan);letter-spacing:0.5px}
+.td-task-why{font-size:9px;color:var(--textD);margin-top:4px;line-height:1.6}
+.td-empty-ai{font-size:9px;color:var(--textF);letter-spacing:1px;text-align:center;padding:18px 0}
+
+/* Personal comments */
+.td-comment-entry{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.td-comment-ta{width:100%;box-sizing:border-box;background:var(--bg2);border:1px solid var(--border);
+  color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:9px 12px;
+  border-radius:3px;outline:none;resize:vertical;min-height:64px;line-height:1.65;transition:border-color 0.12s}
+.td-comment-ta:focus{border-color:var(--cyan)}
+.td-comment-ta::placeholder{color:var(--textF);opacity:0.5}
+.td-comment-btn{align-self:flex-end;background:var(--cyan);color:#020810;font-family:'Courier New',monospace;
+  font-size:8px;letter-spacing:2px;font-weight:700;padding:7px 16px;border:none;border-radius:3px;
+  cursor:pointer;text-transform:uppercase;transition:all 0.18s}
+.td-comment-btn:hover{background:#38bdf8}
+.td-comment-log{display:flex;flex-direction:column;gap:8px}
+.td-comment-card{background:var(--bg1);border:1px solid var(--border);border-left:3px solid var(--cyan);
+  border-radius:4px;padding:10px 14px}
+.td-comment-ts{font-size:8px;color:var(--cyan);letter-spacing:1px;margin-bottom:4px;display:flex;justify-content:space-between}
+.td-comment-text{font-size:10px;color:var(--textD);line-height:1.6}
+.td-comment-rm{background:transparent;border:none;color:var(--textF);font-size:8px;letter-spacing:1px;
+  cursor:pointer;text-transform:uppercase;transition:color 0.15s}
+.td-comment-rm:hover{color:#f87171}
+@media(max-width:700px){
+  .team-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -628,6 +737,7 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   <nav id="main-nav">
     <button class="nav-btn active" onclick="switchView('globe')" id="nav-globe">◎ Globe</button>
     <button class="nav-btn" onclick="switchView('repo')" id="nav-repo">≡ Repository</button>
+    <button class="nav-btn" onclick="switchView('team')" id="nav-team">◉ Team</button>
     <button class="nav-btn" onclick="switchView('upload')" id="nav-upload">⊕ Upload</button>
     <button class="nav-btn" onclick="switchView('add')" id="nav-add">✚ Add Grant</button>
     <button class="nav-btn" id="nav-apikey" onclick="showApiKeyPrompt()" style="margin-left:auto;font-size:8px;letter-spacing:1px;padding:6px 12px" title="Set Anthropic API key">⚙ API Key</button>
@@ -642,6 +752,19 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 
     <!-- Repository view -->
     <div id="repo-view">
+      <div class="repo-filter-bar">
+        <button class="repo-filter-tab" id="repo-filter-tab" onclick="toggleRepoFilters()">
+          <span class="rft-icon">☰</span> Filters &amp; Sort
+          <span class="rft-badge" id="repo-filter-badge" style="display:none">0</span>
+          <span class="rft-chevron" id="repo-filter-chevron">▾</span>
+        </button>
+        <select class="repo-sort" id="repo-sort" onchange="renderRepo()">
+          <option value="urgency">↓ Urgency</option>
+          <option value="readiness">↓ Readiness</option>
+          <option value="label">A–Z Name</option>
+          <option value="geo">A–Z Region</option>
+        </select>
+      </div>
       <div class="repo-filters" id="repo-filters">
         <span class="repo-filter-label">Source:</span>
         <button class="repo-filter active" data-filter="source" data-val="all" onclick="repoFilter(this)">All</button>
@@ -653,12 +776,6 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <div class="repo-filter-sep"></div>
         <span class="repo-filter-label">Status:</span>
         <div id="repo-status-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-        <select class="repo-sort" id="repo-sort" onchange="renderRepo()">
-          <option value="urgency">↓ Urgency</option>
-          <option value="readiness">↓ Readiness</option>
-          <option value="label">A–Z Name</option>
-          <option value="geo">A–Z Region</option>
-        </select>
       </div>
       <div class="repo-col-hdr" style="grid-template-columns:1fr 120px 140px 80px 72px 70px 28px 28px">
         <span>Grant / Programme</span>
@@ -671,6 +788,47 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <span></span>
       </div>
       <div class="repo-list" id="repo-list"></div>
+      </div>
+
+      
+    </div>
+
+    <!-- Team Projects view -->
+    <div id="team-view">
+      <div id="team-grid-wrap">
+        <div class="team-grid" id="team-grid"></div>
+      </div>
+      <div id="team-detail">
+        <button class="td-back" onclick="teamBack()">← Back to team</button>
+        <div class="td-hdr">
+          <div class="td-avatar" id="td-avatar"></div>
+          <div>
+            <div class="td-name" id="td-name"></div>
+            <div class="td-sub" id="td-sub"></div>
+          </div>
+        </div>
+
+        <div class="td-section-title">Active Grants<span id="td-grant-count" style="color:var(--textF);font-size:8px"></span></div>
+        <div class="td-grant-list" id="td-grant-list"></div>
+
+        <div class="td-section-title">
+          ⬡ AI Task Prioritisation
+          <button class="td-ai-btn" id="td-ai-btn" onclick="teamRunAI()">⬡ Generate Priorities</button>
+        </div>
+        <div class="td-ai-box">
+          <div class="td-ai-status" id="td-ai-status" style="display:none">
+            <div class="td-ai-spin"></div><span>Analysing workload across all grants...</span>
+          </div>
+          <div id="td-ai-results"></div>
+        </div>
+
+        <div class="td-section-title">Personal Notes</div>
+        <div class="td-comment-entry">
+          <textarea class="td-comment-ta" id="td-comment-ta" rows="3" placeholder="Add a note about this person's work, a 1:1 outcome, or a follow-up reminder..."></textarea>
+          <button class="td-comment-btn" onclick="teamAddComment()">Commit Note</button>
+        </div>
+        <div class="td-comment-log" id="td-comment-log"></div>
+      </div>
     </div>
 
 
@@ -2402,6 +2560,7 @@ function loadStorage(){
   try{const r1=localStorage.getItem('gb5_grants');if(r1)grants=[...SEED,...JSON.parse(r1).filter(g=>!SEED.find(s=>s.id===g.id))];}catch(e){}
   try{const r2=localStorage.getItem('gb5_owners');if(r2)owners=JSON.parse(r2);}catch(e){}
   try{const r3=localStorage.getItem('gb5_comments');if(r3)comments=JSON.parse(r3);}catch(e){}
+  loadTeamComments();
 }
 
 
@@ -2419,9 +2578,24 @@ function showBanner(msg,ms=3000){
   setTimeout(()=>b.classList.add('hide'),ms);
 }
 
+// Detect environments where the Apps Script fetch will categorically fail
+// (Claude artifact preview / sandboxed srcdoc iframe blocks cross-origin fetch via CSP).
+// Only attempt real sync on an actual deployed origin (e.g. GitHub Pages).
+function canReachAppsScript(){
+  try{
+    const isSandboxedPreview = location.protocol==='about:' || location.href.startsWith('about:srcdoc') ||
+      (window.top!==window.self && location.hostname==='');
+    return !isSandboxedPreview;
+  }catch(e){ return false; } // cross-origin access to location can itself throw in sandboxes
+}
+
+let _syncFailCount=0;
 async function syncFromGmail(){
   if(!getAppsScriptURL()){
     setSyncStatus('idle','gmail: not connected');return;
+  }
+  if(!canReachAppsScript()){
+    setSyncStatus('idle','gmail: preview mode');return;
   }
   setSyncStatus('syncing','// syncing...');
   try{
@@ -2478,7 +2652,8 @@ async function syncFromGmail(){
 
   }catch(err){
     setSyncStatus('err','// sync failed');
-    console.warn('Gmail sync failed:',err);
+    _syncFailCount++;
+    if(_syncFailCount<=1) console.warn('Gmail sync failed (will retry silently):',err);
   }
 }
 
@@ -2714,6 +2889,15 @@ function selectGrant(id){
   document.getElementById('panel-filled').style.display='flex';
   renderNodePicker();renderPanelHeader();renderContent();renderHdrOwners();
   mobileCollapse();
+  // If the layout is stacked (narrow viewport — including embedded preview
+  // contexts that may report a narrower width than the visual render),
+  // scroll the detail panel into view so the user isn't left looking at
+  // an unchanged globe with no obvious indication that content loaded.
+  if(!isDesktopWidth()){
+    setTimeout(()=>{
+      document.getElementById('right-panel').scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+  }
 }
 function addOwner(){
   const inp=document.getElementById('owner-inp');if(!inp||!inp.value.trim())return;
@@ -2722,11 +2906,13 @@ function addOwner(){
   if(!owners[selectedId])owners[selectedId]=[];
   owners[selectedId].push({id:uid(),name:inp.value.trim(),role:role,addedAt:Date.now()});
   saveOwners();renderContent();renderHdrOwners();updateStats();
+  if(document.getElementById('nav-team')?.classList.contains('active')) renderTeamGrid();
 }
 function removeOwner(oid){
   if(!owners[selectedId])return;
   owners[selectedId]=owners[selectedId].filter(o=>o.id!==oid);
   saveOwners();renderContent();renderHdrOwners();
+  if(document.getElementById('nav-team')?.classList.contains('active')) renderTeamGrid();
 }
 function addComment(){
   const ta=document.getElementById('comment-ta');if(!ta||!ta.value.trim())return;
@@ -2879,6 +3065,11 @@ function selectDiscGrant(id){
   renderDiscContent(g);
 
   mobileCollapse();
+  if(!isDesktopWidth()){
+    setTimeout(()=>{
+      document.getElementById('disc-panel').scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+  }
 }
 
 function switchDiscTab(tab){
@@ -3163,10 +3354,23 @@ function buildUnifiedGlobe(){
   else globeMainGroup.userData.neuralLines=neuralLines; // empty in geo mode
 
   /* ── Resize ── */
+  // Debounced via requestAnimationFrame + size-change guard to avoid
+  // "ResizeObserver loop completed with undelivered notifications" —
+  // resizing the canvas itself triggers another resize event on some browsers,
+  // so we (a) defer the actual resize to the next frame and (b) skip no-op resizes.
+  let _resizeRAF=null;
+  let _lastW=-1,_lastH=-1;
   new ResizeObserver(()=>{
-    const m=document.getElementById('globe-mount');
-    const nW=m.clientWidth,nH=Math.max(m.clientHeight,300);
-    globeRenderer.setSize(nW,nH,false);globeCamera.aspect=nW/nH;globeCamera.updateProjectionMatrix();
+    if(_resizeRAF) return; // already scheduled — coalesce bursts
+    _resizeRAF=requestAnimationFrame(()=>{
+      _resizeRAF=null;
+      const m=document.getElementById('globe-mount');
+      if(!m||!globeRenderer||!globeCamera) return;
+      const nW=m.clientWidth,nH=Math.max(m.clientHeight,300);
+      if(nW===_lastW&&nH===_lastH) return; // no actual change — skip
+      _lastW=nW;_lastH=nH;
+      globeRenderer.setSize(nW,nH,false);globeCamera.aspect=nW/nH;globeCamera.updateProjectionMatrix();
+    });
   }).observe(mount);
 
   /* ── Input events ── */
@@ -3243,7 +3447,7 @@ function rebuildGlobe(){
 
 
 function init(){
-  if(window.innerWidth>700){
+  if(isDesktopWidth()){
     document.getElementById('globe-panel').style.width='52%';
   }
   loadStorage();
@@ -3518,7 +3722,7 @@ function setGlobeMode(mode){
 }
 
 function mobileCollapse(){
-  if(window.innerWidth>700)return;
+  if(isDesktopWidth())return;
   document.getElementById('globe-panel').classList.add('collapsed');
   document.getElementById('back-to-globe').classList.add('visible');
 }
@@ -3538,23 +3742,50 @@ const STATUS_META={
   future: {label:'Future',     color:'#6b7280'},
 };
 
+// Single source of truth for the mobile/desktop breakpoint.
+// We ask the BROWSER what layout mode is actually active (by reading the
+// computed flex-direction of .body, which is governed solely by the
+// @media(max-width:700px) CSS rule) rather than re-deriving the same
+// breakpoint from window.innerWidth in JS. This guarantees JS and CSS
+// can never disagree about which layout is in effect, no matter how
+// window.innerWidth is being reported in any given embedding context.
+function isDesktopWidth(){
+  try{
+    const bodyEl=document.getElementById('body-el');
+    if(bodyEl){
+      const fd=getComputedStyle(bodyEl).flexDirection;
+      return fd!=='column'; // mobile CSS sets flex-direction:column
+    }
+  }catch(e){}
+  return window.innerWidth>700; // fallback if body-el isn't available yet
+}
+
 function switchView(view){
-  const isGlobe=view==='globe', isRepo=view==='repo', isUpload=view==='upload', isAdd=view==='add';
+  const isGlobe=view==='globe', isRepo=view==='repo', isUpload=view==='upload', isAdd=view==='add', isTeam=view==='team';
+  const desktop=isDesktopWidth();
   document.getElementById('repo-view').classList.toggle('visible', isRepo);
   document.getElementById('upload-view').classList.toggle('visible', isUpload);
   document.getElementById('add-view').classList.toggle('visible', isAdd);
+  document.getElementById('team-view').classList.toggle('visible', isTeam);
   document.getElementById('globe-panel').style.display=isGlobe?'':'none';
-  document.getElementById('right-panel').style.display=isGlobe&&window.innerWidth>700?'flex':'none';
+  // On mobile, the right panel is handled entirely by CSS (.right{width:100%} stacks below
+  // the globe in normal flow) — only force display:none here when NOT on the globe view,
+  // so we never fight the CSS layout on narrow screens.
+  document.getElementById('right-panel').style.display = isGlobe ? (desktop ? 'flex' : '') : 'none';
   document.getElementById('disc-panel').style.display='none';
-  document.getElementById('divider').style.display=isGlobe&&window.innerWidth>700?'':'none';
+  document.getElementById('divider').style.display = (isGlobe && desktop) ? '' : 'none';
   document.getElementById('back-to-globe').classList.remove('visible');
   document.getElementById('nav-globe').classList.toggle('active', isGlobe);
   document.getElementById('nav-repo').classList.toggle('active', isRepo);
   document.getElementById('nav-upload').classList.toggle('active', isUpload);
   document.getElementById('nav-add').classList.toggle('active', isAdd);
+  document.getElementById('nav-team').classList.toggle('active', isTeam);
   if(isRepo){buildRepoFilters();renderRepo();}
-  if(isGlobe&&window.innerWidth>700){
+  if(isTeam){teamBack();renderTeamGrid();}
+  if(isGlobe&&desktop){
     document.getElementById('globe-panel').style.width='55%';
+  } else if(isGlobe){
+    document.getElementById('globe-panel').style.width='';
   }
 }
 
@@ -3570,6 +3801,8 @@ function buildRepoFilters(){
   statEl.innerHTML='<button class="repo-filter active" data-filter="status" data-val="all" onclick="repoFilter(this)">All</button>'
     +Object.entries(STATUS_META).map(([k,v])=>`<button class="repo-filter" data-filter="status" data-val="${k}" onclick="repoFilter(this)" style="border-color:${v.color}40;color:${v.color}">${v.label}</button>`).join('')
     +'<button class="repo-filter" data-filter="status" data-val="discovery" onclick="repoFilter(this)" style="border-color:#34d39940;color:#34d399">Discovery</button>';
+
+  updateRepoFilterBadge();
 }
 
 function repoFilter(btn){
@@ -3579,6 +3812,25 @@ function repoFilter(btn){
   btn.closest('div,nav').querySelectorAll(`[data-filter="${filter}"]`).forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderRepo();
+  updateRepoFilterBadge();
+}
+
+// ── Collapsible filter panel ─────────────────────────────────────────────────
+function toggleRepoFilters(){
+  document.getElementById('repo-filters').classList.toggle('open');
+  document.getElementById('repo-filter-tab').classList.toggle('open');
+}
+
+function updateRepoFilterBadge(){
+  const activeCount = Object.values(repoFilters).filter(v=>v!=='all').length;
+  const badge = document.getElementById('repo-filter-badge');
+  if(!badge) return;
+  if(activeCount > 0){
+    badge.textContent = activeCount;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 function renderRepo(){
@@ -4545,6 +4797,214 @@ document.addEventListener('click',e=>{if(e.target.id==='promote-modal')promoteCl
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('promote-modal').classList.contains('visible'))promoteClose();
 });
+
+
+// ══════════════════════════════════════════════════
+// TEAM / PERSONAL PROJECTS
+// ══════════════════════════════════════════════════
+let teamComments = {};      // { personNameLower: [{id,text,ts}] }
+let _teamSelected = null;   // currently viewed person (lowercased name)
+
+const saveTeamComments = () => { try{ localStorage.setItem('gb5_teamComments', JSON.stringify(teamComments)); }catch(e){} };
+function loadTeamComments(){
+  try{
+    const raw = localStorage.getItem('gb5_teamComments');
+    if(raw) teamComments = JSON.parse(raw);
+  }catch(e){}
+}
+
+// ── Derive every unique person from owners{} across all grants ─────────────
+function getAllTeamMembers(){
+  const map = {}; // lowerName -> {name, grants: [{id,label,role,status,geo}], roles:Set}
+  Object.entries(owners).forEach(([grantId, ownerList])=>{
+    const g = grants.find(g=>g.id===grantId);
+    if(!ownerList || !ownerList.length) return;
+    ownerList.forEach(o=>{
+      const key = o.name.trim().toLowerCase();
+      if(!key) return;
+      if(!map[key]) map[key] = { name:o.name.trim(), grants:[] };
+      map[key].grants.push({
+        id: grantId,
+        label: g ? g.label : '(grant removed)',
+        role: o.role || 'assistant',
+        status: g ? g.status : null,
+        geo: g ? g.geo : '',
+        urgency: g ? (g.urgency||50) : 50,
+        readiness: g ? (g.readiness||50) : 50,
+      });
+    });
+  });
+  return Object.values(map).sort((a,b)=>b.grants.length-a.grants.length);
+}
+
+// ── Toggle between Grants list and Team Projects ────────────────────────────
+
+
+// ── Render the grid of person cards ─────────────────────────────────────────
+function renderTeamGrid(){
+  const members = getAllTeamMembers();
+  const grid = document.getElementById('team-grid');
+  if(!members.length){
+    grid.innerHTML = '<div class="team-empty" style="grid-column:1/-1">// no team members assigned yet<br><span style="opacity:0.6">assign owners to grants from any grant panel to populate this view</span></div>';
+    return;
+  }
+  grid.innerHTML = members.map(m=>{
+    const avgUrgency = Math.round(m.grants.reduce((s,g)=>s+g.urgency,0)/m.grants.length);
+    const pursueCount = m.grants.filter(g=>g.status==='pursue').length;
+    return `<div class="team-card" onclick="teamSelect('${m.name.replace(/'/g,"\\'")}')">
+      <div class="team-card-top">
+        <div class="team-card-avatar" style="background:${avatarColor(m.name)}">${initials(m.name)}</div>
+        <div>
+          <div class="team-card-name">${m.name}</div>
+          <div class="team-card-count">${m.grants.length} grant${m.grants.length===1?'':'s'}</div>
+        </div>
+      </div>
+      <div class="team-card-stats">
+        <span><span class="team-card-stat-val">${pursueCount}</span> pursuing</span>
+        <span><span class="team-card-stat-val">${avgUrgency}</span> avg urgency</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Select a person — show their detail panel ───────────────────────────────
+function teamSelect(name){
+  const members = getAllTeamMembers();
+  const m = members.find(x=>x.name===name);
+  if(!m) return;
+  _teamSelected = name.trim().toLowerCase();
+
+  document.getElementById('team-grid-wrap').style.display = 'none';
+  document.getElementById('team-detail').classList.add('visible');
+
+  document.getElementById('td-avatar').style.background = avatarColor(m.name);
+  document.getElementById('td-avatar').textContent = initials(m.name);
+  document.getElementById('td-name').textContent = m.name;
+  document.getElementById('td-sub').textContent = m.grants.length + ' grant' + (m.grants.length===1?'':'s') + ' assigned';
+  document.getElementById('td-grant-count').textContent = '// ' + m.grants.length;
+
+  document.getElementById('td-grant-list').innerHTML = m.grants.map(g=>{
+    const sm = SM[g.status] || SM.watch;
+    return `<div class="td-grant-row" onclick="teamOpenGrant('${g.id}')" style="border-left-color:${sm.color}">
+      <div>
+        <div class="td-grant-name">${g.label}</div>
+        <div class="td-grant-meta">${g.geo} \u00b7 urgency ${g.urgency} \u00b7 readiness ${g.readiness}%</div>
+      </div>
+      <span class="td-grant-role" style="color:${sm.color};border-color:${sm.color}55">${sm.label}</span>
+    </div>`;
+  }).join('');
+
+  // Reset AI panel
+  document.getElementById('td-ai-results').innerHTML = '<div class="td-empty-ai">// click "Generate Priorities" to get an AI-ranked task list across all of '+m.name.split(' ')[0]+"'s grants</div>";
+  document.getElementById('td-ai-status').style.display = 'none';
+
+  renderTeamComments();
+}
+
+function teamOpenGrant(id){
+  switchView('globe');
+  setTimeout(()=>selectGrant(id), 300);
+}
+
+function teamBack(){
+  _teamSelected = null;
+  document.getElementById('team-grid-wrap').style.display = '';
+  document.getElementById('team-detail').classList.remove('visible');
+}
+
+// ── AI task prioritisation across all of a person's grants ──────────────────
+async function teamRunAI(){
+  const members = getAllTeamMembers();
+  const m = members.find(x=>x.name.trim().toLowerCase()===_teamSelected);
+  if(!m) return;
+  if(!getApiKey()){ showApiKeyPrompt(); return; }
+
+  const btn = document.getElementById('td-ai-btn');
+  const status = document.getElementById('td-ai-status');
+  const results = document.getElementById('td-ai-results');
+  btn.disabled = true;
+  status.style.display = 'flex';
+  results.innerHTML = '';
+
+  const grantSummaries = m.grants.map(g=>{
+    const full = grants.find(x=>x.id===g.id);
+    const openActions = full && full.actions ? full.actions.filter(a=>!a.u).map(a=>a.t||a) : [];
+    return `- ${g.label} (${g.geo}) | status: ${g.status} | urgency: ${g.urgency}/100 | readiness: ${g.readiness}% | open actions: ${openActions.length ? openActions.join('; ') : 'none listed'}`;
+  }).join('\n');
+
+  const prompt = `You are a grant operations assistant for Gigablue, a marine carbon dioxide removal (mCDR) company. ${m.name} is responsible for the following grant vectors:
+
+${grantSummaries}
+
+Based on urgency, readiness, and open actions, produce a prioritised task list for ${m.name.split(' ')[0]} \u2014 what they should focus on first, and why. Return ONLY valid JSON (no markdown):
+
+{
+  "tasks": [
+    {"title":"specific actionable task","grant":"grant label this relates to","urgency":"high|medium|low","why":"1-2 sentence rationale tying urgency/readiness/deadline together"}
+  ]
+}
+
+Produce 4-7 tasks ordered by priority (most urgent first). Be specific and reference the actual grant names and open actions provided.`;
+
+  try{
+    const raw = await callClaude([{role:'user',content:prompt}], 1400);
+    const ai = JSON.parse(raw);
+    const urgColor = {high:'#f87171', medium:'#fbbf24', low:'#4fc3f7'};
+    if(ai.tasks && ai.tasks.length){
+      results.innerHTML = ai.tasks.map(t=>`
+        <div class="td-task">
+          <div class="td-task-urgency" style="background:${urgColor[t.urgency]||urgColor.medium}"></div>
+          <div class="td-task-body">
+            <div class="td-task-title">${t.title}</div>
+            <div class="td-task-grant">// ${t.grant}</div>
+            <div class="td-task-why">${t.why}</div>
+          </div>
+        </div>`).join('');
+    } else {
+      results.innerHTML = '<div class="td-empty-ai">// AI returned no tasks</div>';
+    }
+  }catch(e){
+    results.innerHTML = '<div class="td-empty-ai" style="color:#f87171">Analysis failed: '+e.message+'</div>';
+  }
+
+  status.style.display = 'none';
+  btn.disabled = false;
+}
+
+// ── Personal comments (per team member, separate from grant comments) ──────
+function renderTeamComments(){
+  const log = (teamComments[_teamSelected] || []).slice().reverse();
+  const el = document.getElementById('td-comment-log');
+  if(!log.length){
+    el.innerHTML = '<div class="td-empty-ai">// no notes yet</div>';
+    return;
+  }
+  el.innerHTML = log.map(c=>`
+    <div class="td-comment-card">
+      <div class="td-comment-ts">
+        <span>${fmt(c.ts)}</span>
+        <button class="td-comment-rm" onclick="teamRemoveComment('${c.id}')">Remove</button>
+      </div>
+      <div class="td-comment-text">${c.text}</div>
+    </div>`).join('');
+}
+
+function teamAddComment(){
+  const ta = document.getElementById('td-comment-ta');
+  if(!ta || !ta.value.trim() || !_teamSelected) return;
+  if(!teamComments[_teamSelected]) teamComments[_teamSelected] = [];
+  teamComments[_teamSelected].push({ id: uid(), text: ta.value.trim(), ts: Date.now() });
+  ta.value = '';
+  saveTeamComments();
+  renderTeamComments();
+}
+
+function teamRemoveComment(cid){
+  if(!_teamSelected || !teamComments[_teamSelected]) return;
+  teamComments[_teamSelected] = teamComments[_teamSelected].filter(c=>c.id!==cid);
+  saveTeamComments();
+  renderTeamComments();
+}
 
 function authComplete(){
   // Gate: double-check auth token before allowing init
