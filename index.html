@@ -649,6 +649,31 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   20%,60%{background:rgba(79,195,247,0.12);box-shadow:0 0 0 1px rgba(79,195,247,0.4)}
 }
 .mention-highlight{animation:mentionFlash 1.6s ease-in-out 2}
+
+/* ── Assignment notifications ── */
+.team-assign-bubble{position:absolute;top:-6px;left:-6px;background:var(--cyan);color:#020810;
+  font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;
+  box-shadow:0 0 0 2px var(--bg1);font-family:'Courier New',monospace;z-index:2}
+.td-assign-bubble{background:var(--cyan);color:#020810;font-size:9px;font-weight:700;
+  min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;
+  justify-content:center;padding:0 5px;font-family:'Courier New',monospace}
+.td-assign-row{background:rgba(79,195,247,0.05);border:1px solid rgba(79,195,247,0.2);
+  border-left:3px solid var(--cyan);border-radius:4px;padding:10px 14px;cursor:pointer;
+  transition:all 0.15s;margin-bottom:8px}
+.td-assign-row:hover{border-color:var(--cyan);background:rgba(79,195,247,0.09)}
+.td-assign-row.read{opacity:0.55;border-left-color:var(--border)}
+.td-assign-action{font-size:10px;color:var(--text);line-height:1.6;margin-bottom:4px}
+.td-assign-action b{color:var(--cyan)}
+.td-assign-meta{font-size:8px;color:var(--textF);letter-spacing:0.5px}
+.td-assign-loc{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}
+.td-assign-loc-text{font-size:8px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase}
+.td-assign-view-btn{background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.35);
+  color:var(--cyan);font-family:'Courier New',monospace;font-size:7px;letter-spacing:1.5px;
+  padding:4px 10px;border-radius:3px;cursor:pointer;text-transform:uppercase;
+  transition:all 0.15s;white-space:nowrap}
+.td-assign-view-btn:hover{background:rgba(79,195,247,0.2);border-color:var(--cyan)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -1220,6 +1245,7 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
             <div class="td-name-row">
               <div class="td-name" id="td-name"></div>
               <span class="td-mention-bubble" id="td-mention-bubble" style="display:none"></span>
+              <span class="td-assign-bubble" id="td-assign-bubble" style="display:none"></span>
             </div>
             <div class="td-sub" id="td-sub"></div>
           </div>
@@ -1227,6 +1253,9 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 
         <div class="td-section-title" id="td-mentions-title" style="display:none">@ Mentions</div>
         <div class="td-mention-list" id="td-mention-list" style="margin-bottom:18px"></div>
+
+        <div class="td-section-title" id="td-assign-title" style="display:none">Assignment Updates</div>
+        <div class="td-assign-list" id="td-assign-list" style="margin-bottom:18px"></div>
 
         <div class="td-section-title">Active Grants<span id="td-grant-count" style="color:var(--textF);font-size:8px"></span></div>
         <div class="td-grant-list" id="td-grant-list"></div>
@@ -2685,6 +2714,8 @@ function loadStorage(){
   try{const r3=localStorage.getItem('gb5_comments');if(r3)comments=JSON.parse(r3);}catch(e){}
   loadTeamComments();
   loadSeenMentions();
+  loadAssignmentEvents();
+  loadSeenAssignments();
 }
 
 
@@ -3002,14 +3033,22 @@ function addOwner(){
   const inp=document.getElementById('owner-inp');if(!inp||!inp.value.trim())return;
   const roleEl=document.getElementById('owner-role');
   const role=roleEl?roleEl.value:'assistant';
+  const personName=inp.value.trim();
   if(!owners[selectedId])owners[selectedId]=[];
-  owners[selectedId].push({id:uid(),name:inp.value.trim(),role:role,addedAt:Date.now()});
+  owners[selectedId].push({id:uid(),name:personName,role:role,addedAt:Date.now()});
+  const g=grants.find(g=>g.id===selectedId);
+  recordAssignmentEvent(personName, selectedId, g?g.label:'(grant removed)', 'added', role);
   saveOwners();renderContent();renderHdrOwners();updateStats();
   if(document.getElementById('nav-team')?.classList.contains('active')) renderTeamGrid();
 }
 function removeOwner(oid){
   if(!owners[selectedId])return;
+  const removedOwner=owners[selectedId].find(o=>o.id===oid);
   owners[selectedId]=owners[selectedId].filter(o=>o.id!==oid);
+  if(removedOwner){
+    const g=grants.find(g=>g.id===selectedId);
+    recordAssignmentEvent(removedOwner.name, selectedId, g?g.label:'(grant removed)', 'removed', removedOwner.role);
+  }
   saveOwners();renderContent();renderHdrOwners();
   if(document.getElementById('nav-team')?.classList.contains('active')) renderTeamGrid();
 }
@@ -5040,6 +5079,15 @@ function getAllTeamMembers(){
     map[key] = { name: typedName, grants: [] };
   });
 
+  // 3. People with assignment history (added/removed events) but no current
+  // assignment and no mentions — e.g. someone removed from their only grant.
+  // They still need a Team page so that history remains reachable.
+  Object.keys(assignmentEvents).forEach(key=>{
+    if(map[key] || !assignmentEvents[key].length) return;
+    const mostRecent = assignmentEvents[key][assignmentEvents[key].length-1];
+    map[key] = { name: mostRecent.personName || key, grants: [] };
+  });
+
   return Object.values(map).sort((a,b)=>b.grants.length-a.grants.length);
 }
 
@@ -5054,8 +5102,10 @@ function renderTeamGrid(){
     const avgUrgency = Math.round(m.grants.reduce((s,g)=>s+g.urgency,0)/m.grants.length);
     const pursueCount = m.grants.filter(g=>g.status==='pursue').length;
     const unreadMentions = getUnreadMentionCount(m.name);
+    const unreadAssignments = getUnreadAssignmentCount(m.name);
     return `<div class="team-card" onclick="teamSelect('${m.name.replace(/'/g,"\\'")}')">
       ${unreadMentions>0?`<span class="team-mention-bubble">${unreadMentions}</span>`:''}
+      ${unreadAssignments>0?`<span class="team-assign-bubble">${unreadAssignments}</span>`:''}
       <div class="team-card-top">
         <div class="team-card-avatar" style="background:${avatarColor(m.name)}">${initials(m.name)}</div>
         <div>
@@ -5103,6 +5153,7 @@ function teamSelect(name){
   document.getElementById('td-ai-status').style.display = 'none';
 
   renderTeamMentions(m.name);
+  renderTeamAssignments(m.name);
   renderTeamComments();
 }
 
@@ -5310,6 +5361,105 @@ function teamOpenMention(grantId, mentionKey){
         }
       }, 80);
     });
+  }, 250);
+}
+
+
+// ══════════════════════════════════════════════════
+// ASSIGNMENT NOTIFICATIONS — owner add/remove events
+// ══════════════════════════════════════════════════
+const ROLE_LABELS = {
+  'project-owner': 'Project Owner',
+  'assistant':     'Assistant',
+  'co-owner':      'Co-Owner',
+  'deployer':      'Deployer',
+};
+
+let assignmentEvents = {}; // { personNameLower: [{id, grantId, grantLabel, action, role, ts}] }
+let seenAssignments = {};  // { eventId: true }
+
+const saveAssignmentEvents = () => { try{ localStorage.setItem('gb5_assignmentEvents', JSON.stringify(assignmentEvents)); }catch(e){} };
+function loadAssignmentEvents(){
+  try{
+    const raw = localStorage.getItem('gb5_assignmentEvents');
+    if(raw) assignmentEvents = JSON.parse(raw);
+  }catch(e){}
+}
+const saveSeenAssignments = () => { try{ localStorage.setItem('gb5_seenAssignments', JSON.stringify(seenAssignments)); }catch(e){} };
+function loadSeenAssignments(){
+  try{
+    const raw = localStorage.getItem('gb5_seenAssignments');
+    if(raw) seenAssignments = JSON.parse(raw);
+  }catch(e){}
+}
+
+// Called whenever someone is added to or removed from a grant's owners list,
+// in any role/capacity. Records a notification event keyed by their name.
+function recordAssignmentEvent(personName, grantId, grantLabel, action, role){
+  const key = personName.trim().toLowerCase();
+  if(!key) return;
+  if(!assignmentEvents[key]) assignmentEvents[key] = [];
+  assignmentEvents[key].push({
+    id: uid(),
+    personName: personName.trim(), // preserve original casing for display
+    grantId,
+    grantLabel,
+    action,   // 'added' | 'removed'
+    role,
+    ts: Date.now(),
+  });
+  saveAssignmentEvents();
+}
+
+function getAssignmentEventsForPerson(fullName){
+  const key = fullName.trim().toLowerCase();
+  const events = assignmentEvents[key] || [];
+  return events.map(e=>({ ...e, isRead: !!seenAssignments[e.id] })).sort((a,b)=>b.ts-a.ts);
+}
+
+function getUnreadAssignmentCount(fullName){
+  return getAssignmentEventsForPerson(fullName).filter(e=>!e.isRead).length;
+}
+
+function renderTeamAssignments(fullName){
+  const events = getAssignmentEventsForPerson(fullName);
+  const titleEl = document.getElementById('td-assign-title');
+  const listEl = document.getElementById('td-assign-list');
+  if(!events.length){
+    titleEl.style.display = 'none';
+    listEl.innerHTML = '';
+    return;
+  }
+  titleEl.style.display = 'flex';
+  const unread = events.filter(e=>!e.isRead).length;
+  titleEl.innerHTML = 'Assignment Updates' + (unread>0 ? `<span class="td-assign-bubble">${unread}</span>` : '');
+  listEl.innerHTML = events.map(e=>{
+    const roleLabel = ROLE_LABELS[e.role] || e.role || 'team member';
+    const actionText = e.action === 'added'
+      ? `You were added as <b>${roleLabel}</b> on`
+      : `You were removed as <b>${roleLabel}</b> from`;
+    return `
+    <div class="td-assign-row${e.isRead?' read':''}" onclick="teamOpenAssignment('${e.grantId}','${e.id}')">
+      <div class="td-assign-action">${actionText} <b>${e.grantLabel}</b></div>
+      <div class="td-assign-meta">${fmt(e.ts)}${e.isRead?' \u00b7 read':''}</div>
+      <div class="td-assign-loc">
+        <span class="td-assign-loc-text">\u25c9 ${e.grantLabel} \u2192 Team Tab</span>
+        <button class="td-assign-view-btn" onclick="event.stopPropagation();teamOpenAssignment('${e.grantId}','${e.id}')">View \u2192</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Clicking an assignment update marks it read and jumps to that grant's Team tab
+function teamOpenAssignment(grantId, eventId){
+  seenAssignments[eventId] = true;
+  saveSeenAssignments();
+  switchView('globe');
+  setTimeout(()=>{
+    selectGrant(grantId);
+    activeTab = 'team';
+    renderPanelHeader();
+    renderContent();
   }, 250);
 }
 
