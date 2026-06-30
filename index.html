@@ -674,6 +674,26 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   padding:4px 10px;border-radius:3px;cursor:pointer;text-transform:uppercase;
   transition:all 0.15s;white-space:nowrap}
 .td-assign-view-btn:hover{background:rgba(79,195,247,0.2);border-color:var(--cyan)}
+
+/* ── Region dropdown (collapsed single tab) ── */
+.repo-region-dd{position:relative;display:inline-block}
+.repo-region-tab{background:var(--bg2);border:1px solid var(--border);color:var(--textD);
+  font-family:'Courier New',monospace;font-size:9px;padding:5px 10px;border-radius:3px;
+  cursor:pointer;letter-spacing:1px;display:flex;align-items:center;gap:6px;transition:all 0.15s}
+.repo-region-tab:hover{border-color:var(--textF)}
+.repo-region-tab.open,.repo-region-tab.has-selection{background:rgba(79,195,247,0.12);border-color:var(--cyan);color:var(--cyan)}
+.repo-region-tab .chev{font-size:7px;transition:transform 0.15s;opacity:0.7}
+.repo-region-tab.open .chev{transform:rotate(180deg)}
+.repo-region-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:50;
+  background:var(--bg1);border:1px solid var(--border);border-radius:4px;
+  padding:6px;min-width:180px;max-height:260px;overflow-y:auto;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);flex-direction:column;gap:2px}
+.repo-region-menu.open{display:flex}
+.repo-region-opt{background:transparent;border:none;color:var(--textD);
+  font-family:'Courier New',monospace;font-size:9px;padding:6px 8px;border-radius:3px;
+  cursor:pointer;text-align:left;letter-spacing:0.5px;transition:all 0.12s;width:100%}
+.repo-region-opt:hover{background:rgba(79,195,247,0.08);color:var(--text)}
+.repo-region-opt.active{background:rgba(79,195,247,0.14);color:var(--cyan)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -792,7 +812,12 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <button class="repo-filter" data-filter="source" data-val="discovery" onclick="repoFilter(this)">Discovery</button>
         <div class="repo-filter-sep"></div>
         <span class="repo-filter-label">Region:</span>
-        <div id="repo-geo-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        <div class="repo-region-dd" id="repo-region-dd">
+          <button class="repo-region-tab" id="repo-region-tab" onclick="toggleRegionMenu(event)">
+            <span id="repo-region-tab-label">All Regions</span><span class="chev">▾</span>
+          </button>
+          <div class="repo-region-menu" id="repo-region-menu"></div>
+        </div>
         <div class="repo-filter-sep"></div>
         <span class="repo-filter-label">Status:</span>
         <div id="repo-status-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -3263,6 +3288,7 @@ function renderDiscContent(g){
 let globeMode='cluster'; // 'cluster' | 'geo'
 let globeRenderer,globeScene,globeCamera,globeMainGroup;
 let allNodeMeshes=[],allGlowMeshes=[],globeRAF=null;
+let pipelineHubObjects=[],discHubObjects=[]; // owner hub orbital state, reset each globe rebuild
 let rotY=0.3,rotX=-0.15,isDragging=false,prevMX=0,prevMY=0;
 let zoom=4.8,autoRotate=true,mousePos={x:-9999,y:-9999},globeTime=0;
 
@@ -3279,7 +3305,7 @@ function buildUnifiedGlobe(){
 
   if(globeRAF){cancelAnimationFrame(globeRAF);globeRAF=null;}
   mount.querySelectorAll('canvas').forEach(c=>c.remove());
-  allNodeMeshes=[];allGlowMeshes=[];
+  allNodeMeshes=[];allGlowMeshes=[];pipelineHubObjects=[];discHubObjects=[];
 
   globeRenderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
@@ -3352,141 +3378,276 @@ function buildUnifiedGlobe(){
 
   const raycaster=new THREE.Raycaster();
 
-  /* ── Pipeline nodes (inner shell r=1.28) ── */
-  // Node position: cluster mode or geo mode
+  
+/* ── Pipeline nodes (inner shell r=1.28) — owner orbital hierarchy ── */
+  // Two-level orbit: each owner hub revolves around the shared center;
+  // each grant revolves around its own owner's hub. Both orbits are
+  // recomputed every animation frame (see animate() below), so what's
+  // built here is the orbital PARAMETERS (radius/speed/phase), not a
+  // fixed position — the actual position is set each frame.
+  const pipelineOwnerNames = [...new Set(grants.map(resolveGrantOwnerName))];
+  const pipelineHubCount = pipelineOwnerNames.length;
+  // Hub orbit radius around the shared center — spread hubs further apart
+  // as there are more of them, same spirit as before but now a genuine
+  // revolving orbit rather than a static anchor point.
+  const pipelineHubOrbitR = pipelineHubCount<=1 ? 0 : 0.5 + Math.min(pipelineHubCount,8)*0.1;
+  const pipelineHubDirs = buildClusterAnchors(pipelineOwnerNames); // unit directions, evenly spread
+  const pipelineHubState = {}; // ownerName -> {orbitR, orbitSpeed, orbitPhase, baseDir:[x,y,z], grants:[]}
+  pipelineOwnerNames.forEach((name,hi)=>{
+    pipelineHubState[name] = {
+      orbitR: pipelineHubOrbitR,
+      orbitSpeed: 0.010125 + (hi%3)*0.0030375,   // slight variation so hubs don't all move in lockstep
+      orbitPhase: (hi/Math.max(pipelineHubCount,1))*Math.PI*2,
+      baseDir: pipelineHubDirs[name] || [0,1,0],
+      grantCount: 0,
+    };
+  });
+  grants.forEach(g=>{ pipelineHubState[resolveGrantOwnerName(g)].grantCount++; });
+
   grants.forEach((g,i)=>{
     const s=SM[g.status];
-    let pos;
-    if(globeMode==='geo'){
-      // Place on real-world lat/lon on the geo globe (r=1.82)
-      const coords=GEO_COORDS[g.geo];
-      if(coords) pos=latLonToVec3(coords[0],coords[1],1.82);
-      else pos=new THREE.Vector3(g.x*1.28,g.y*1.28,g.z*1.28);
-    } else {
-      // Regional anchors — pipeline nodes cluster by geography
-      const regionAnchors={
-        'Chile':          [-0.7, -0.4,  0.8],
-        'Chile / Global': [-0.6, -0.3,  0.9],
-        'Australia':      [ 0.8, -0.5, -0.3],
-        'New Zealand':    [ 0.6,  0.1, -0.9],
-        'New Zealand / Pacific':[ 0.5,  0.2, -0.9],
-        'Alaska / USA':   [ 0.3,  0.8,  0.6],
-        'USA':            [ 0.4,  0.7,  0.6],
-        'European Union': [-0.6,  0.7, -0.4],
-        'Ireland':        [-0.7,  0.6, -0.4],
-        'Japan':          [ 0.9,  0.2,  0.4],
-        'Global':         [ 0.0,  0.9,  0.1],
-        'Multi-country':  [ 0.1,  0.8,  0.2],
-      };
-      const anc=regionAnchors[g.geo]||[g.x,g.y,g.z];
-      const bx=g.x+(anc[0]-g.x)*0.65, by=g.y+(anc[1]-g.y)*0.65, bz=g.z+(anc[2]-g.z)*0.65;
-      const bm=Math.sqrt(bx*bx+by*by+bz*bz)||1;
-      pos=new THREE.Vector3(bx/bm*1.28,by/bm*1.28,bz/bm*1.28);
-    }
+    const ownerName = resolveGrantOwnerName(g);
     const r=(g.size||1)*0.1;
-    const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
-    globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0.08})));
+
+    if(globeMode==='geo'){
+      // Geo mode is untouched — real-world lat/lon placement, no orbits.
+      const coords=GEO_COORDS[g.geo];
+      const pos = coords ? latLonToVec3(coords[0],coords[1],1.82) : new THREE.Vector3(g.x*1.28,g.y*1.28,g.z*1.28);
+      const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
+      globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0.08})));
+      const sg=buildSphere(r,s.color);
+      sg.position.copy(pos);sg.userData={id:g.id,type:'pipeline',index:i};
+      globeMainGroup.add(sg);
+      const hit=new THREE.Mesh(new THREE.SphereGeometry(r*1.8,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+      hit.position.copy(pos);hit.userData={id:g.id,type:'pipeline',index:i,sg};
+      globeMainGroup.add(hit);allNodeMeshes.push(hit);
+      const glow=new THREE.Mesh(new THREE.SphereGeometry(r*2.4,12,12),new THREE.MeshBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0,side:THREE.BackSide}));
+      glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
+      const words=g.label.split(' '),mid=Math.ceil(words.length/2);
+      const cv=document.createElement('canvas');cv.width=280;cv.height=72;const ctx=cv.getContext('2d');
+      ctx.fillStyle=g.status==='future'?'#4b5563':s.color;ctx.font="700 18px 'Courier New',monospace";ctx.textAlign='center';
+      ctx.fillText(words.slice(0,mid).join(' '),140,26);if(words.slice(mid).length)ctx.fillText(words.slice(mid).join(' '),140,50);
+      const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
+      sp.scale.set(0.95,0.24,1);sp.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.22)));
+      globeMainGroup.add(sp);
+      return;
+    }
+
+    // Cluster mode — orbital hierarchy.
+    const hub = pipelineHubState[ownerName];
+    // Grant-orbit radius scales up with how many grants this owner has,
+    // so siblings spread out rather than overlapping (per agreed design).
+    const grantOrbitR = 0.42 + Math.min(hub.grantCount,10)*0.05;
+    const localIndexWithinOwner = i; // unique enough for phase offset purposes
+    const grantOrbit = {
+      r: grantOrbitR,
+      speed: 0.1265625 + (localIndexWithinOwner%5)*0.02278125,
+      phase: (localIndexWithinOwner * 2.399963), // golden-angle spacing avoids visual clumping
+      tiltX: ((localIndexWithinOwner%3)-1)*0.5,  // small per-grant orbital tilt for a 3D feel
+      tiltZ: ((localIndexWithinOwner%4)-1.5)*0.4,
+      pulseOffset: localIndexWithinOwner*0.97,   // desyncs each line's pulse so they don't blink in unison
+      pulseSpeed: 1.1 + (localIndexWithinOwner%4)*0.35,
+    };
+
+    // Initial position (frame 0) so nothing is at the origin before animate() first runs.
+    const pos = new THREE.Vector3(
+      hub.baseDir[0]*1.28 + grantOrbit.r*Math.cos(grantOrbit.phase),
+      hub.baseDir[1]*1.28 + grantOrbit.r*Math.sin(grantOrbit.phase)*Math.sin(grantOrbit.tiltX),
+      hub.baseDir[2]*1.28 + grantOrbit.r*Math.sin(grantOrbit.phase)*Math.cos(grantOrbit.tiltZ)
+    );
+
+    // Connecting line from owner hub to grant — geometry is mutated in
+    // place every frame (see animate()), not from absolute origin anymore.
+    const lineGeo=new THREE.BufferGeometry().setFromPoints([pos.clone(),pos.clone()]);
+    const line=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.12}));
+    globeMainGroup.add(line);
+
     const sg=buildSphere(r,s.color);
-    sg.position.copy(pos);sg.userData={id:g.id,type:'pipeline',index:i};
+    sg.position.copy(pos);
+    sg.userData={id:g.id,type:'pipeline',index:i,ownerName,orbit:grantOrbit,hub,line};
     globeMainGroup.add(sg);
     const hit=new THREE.Mesh(new THREE.SphereGeometry(r*1.8,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    hit.position.copy(pos);hit.userData={id:g.id,type:'pipeline',index:i,sg};
+    hit.position.copy(pos);hit.userData={id:g.id,type:'pipeline',index:i,sg,ownerName,orbit:grantOrbit,hub,line};
     globeMainGroup.add(hit);allNodeMeshes.push(hit);
     const glow=new THREE.Mesh(new THREE.SphereGeometry(r*2.4,12,12),new THREE.MeshBasicMaterial({color:new THREE.Color(s.color),transparent:true,opacity:0,side:THREE.BackSide}));
     glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
+
     const words=g.label.split(' '),mid=Math.ceil(words.length/2);
     const cv=document.createElement('canvas');cv.width=280;cv.height=72;const ctx=cv.getContext('2d');
     ctx.fillStyle=g.status==='future'?'#4b5563':s.color;ctx.font="700 18px 'Courier New',monospace";ctx.textAlign='center';
     ctx.fillText(words.slice(0,mid).join(' '),140,26);if(words.slice(mid).length)ctx.fillText(words.slice(mid).join(' '),140,50);
     const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false}));
-    sp.scale.set(0.95,0.24,1);sp.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.22)));
+    sp.scale.set(0.95,0.24,1);
     globeMainGroup.add(sp);
+    sg.userData.labelSprite=sp; // repositioned every frame relative to sg
+    hit.userData.labelSprite=sp;
   });
 
-  /* ── Discovery nodes (outer shell r=2.2) ── */
+  /* ── Owner hub markers — themselves orbit the shared center (cluster mode only) ── */
+  if(globeMode!=='geo'){
+    pipelineOwnerNames.forEach(ownerName=>{
+      const hub=pipelineHubState[ownerName];
+      const isUnassigned = ownerName==='Unassigned';
+      const hubColor = isUnassigned ? 0x4b5563 : 0x4fc3f7;
+      const initialPos=new THREE.Vector3(hub.baseDir[0]*2.18,hub.baseDir[1]*2.18,hub.baseDir[2]*2.18);
+
+      const hubGroup=new THREE.Group();
+      hubGroup.position.copy(initialPos);
+      const hubCore=new THREE.Mesh(new THREE.SphereGeometry(0.085,16,16),new THREE.MeshBasicMaterial({color:hubColor,transparent:true,opacity:isUnassigned?0.45:0.85}));
+      hubGroup.add(hubCore);
+      hubGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.14,12,12),new THREE.MeshBasicMaterial({color:hubColor,transparent:true,opacity:0.08,side:THREE.BackSide})));
+      globeMainGroup.add(hubGroup);
+
+      // Orbit ring around this owner's local cluster — also moves with the hub.
+      const ringPts=[];for(let a=0;a<=64;a++){const t=(a/64)*Math.PI*2;ringPts.push(new THREE.Vector3(Math.cos(t)*0.42,Math.sin(t)*0.42,0));}
+      const ringGeo=new THREE.BufferGeometry().setFromPoints(ringPts);
+      const ringLine=new THREE.Line(ringGeo,new THREE.LineBasicMaterial({color:hubColor,transparent:true,opacity:0.1}));
+      ringLine.position.copy(initialPos);
+      globeMainGroup.add(ringLine);
+
+      const hcv=document.createElement('canvas');hcv.width=220;hcv.height=40;
+      const hctx=hcv.getContext('2d');hctx.fillStyle=isUnassigned?'#6b7280':'#4fc3f7';
+      hctx.font="700 16px 'Courier New',monospace";hctx.textAlign='center';
+      hctx.fillText(ownerName.toUpperCase(),110,24);
+      const hsp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hcv),transparent:true,depthWrite:false,opacity:0.9}));
+      hsp.scale.set(0.75,0.14,1);
+      globeMainGroup.add(hsp);
+
+      hub.hubGroup=hubGroup; hub.ringLine=ringLine; hub.labelSprite=hsp; hub.shellR=2.18;
+      pipelineHubObjects.push(hub);
+    });
+  }
+
+  /* ── Discovery nodes (outer shell r=2.2) — owner orbital hierarchy ── */
+  const discOwnerNames = [...new Set(DISC_SEED.map(resolveDiscoveryOwnerName))];
+  const discHubCount = discOwnerNames.length;
+  const discHubOrbitR = discHubCount<=1 ? 0 : 0.8 + Math.min(discHubCount,8)*0.14;
+  const discHubDirs = buildClusterAnchors(discOwnerNames);
+  const discHubState = {};
+  discOwnerNames.forEach((name,hi)=>{
+    discHubState[name] = {
+      orbitR: discHubOrbitR,
+      orbitSpeed: 0.00632813 + (hi%3)*0.002025,
+      orbitPhase: (hi/Math.max(discHubCount,1))*Math.PI*2,
+      baseDir: discHubDirs[name] || [0,0.9,0.1],
+      grantCount: 0,
+    };
+  });
+  DISC_SEED.forEach(g=>{ discHubState[resolveDiscoveryOwnerName(g)].grantCount++; });
+
   DISC_SEED.forEach((g,i)=>{
     const typeColor=(DISC_TYPES[g.type]||DISC_TYPES.nondilutive).color;
     const col=new THREE.Color(typeColor);
-    const phi=Math.acos(1-2*(i+0.5)/DISC_SEED.length);
-    const theta=(Math.PI*(1+Math.sqrt(5)))*(i+0.5);
-    // All discovery nodes cluster together on the upper-left outer shell
-    let pos;
+    const discOwnerName=resolveDiscoveryOwnerName(g);
+    const r=0.07*(g.size||1);
+
     if(globeMode==='geo'){
-      // Place on real-world lat/lon on geo globe (r=1.82, slightly offset outward)
+      const phi=Math.acos(1-2*(i+0.5)/DISC_SEED.length);
+      const theta=(Math.PI*(1+Math.sqrt(5)))*(i+0.5);
       const coords=GEO_COORDS[g.region];
+      let pos;
       if(coords) pos=latLonToVec3(coords[0],coords[1],2.05);
       else {
         const rx2=Math.sin(phi)*Math.cos(theta),ry2=Math.cos(phi),rz2=Math.sin(phi)*Math.sin(theta);
         pos=new THREE.Vector3(rx2*2.05,ry2*2.05,rz2*2.05);
       }
-    } else {
-      // Discovery nodes cluster by region to sit near their pipeline counterparts
-      const discRegionAnchors={
-        'Chile':        [-0.7, -0.4,  0.8],
-        'Australia':    [ 0.8, -0.5, -0.3],
-        'NZ':           [ 0.6,  0.1, -0.9],
-        'New Zealand':  [ 0.6,  0.1, -0.9],
-        'Alaska':       [ 0.3,  0.8,  0.6],
-        'Alaska / USA': [ 0.3,  0.8,  0.6],
-        'EU':           [-0.6,  0.7, -0.4],
-        'Japan':        [ 0.9,  0.2,  0.4],
-        'Canada':       [-0.2,  0.85, 0.5],
-      };
-      const discAnchor=discRegionAnchors[g.region]||[0.0,0.9,0.1];
-      const rx=Math.sin(phi)*Math.cos(theta), ry=Math.cos(phi), rz=Math.sin(phi)*Math.sin(theta);
-      const dx=rx+(discAnchor[0]-rx)*0.62, dy=ry+(discAnchor[1]-ry)*0.62, dz=rz+(discAnchor[2]-rz)*0.62;
-      const dm2=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
-      pos=new THREE.Vector3(dx/dm2*2.2,dy/dm2*2.2,dz/dm2*2.2);
+      const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
+      globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.04})));
+      const sg=new THREE.Group();
+      sg.position.copy(pos);sg.userData={id:g.id,type:'discovery',index:i};
+      const coreMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.85});
+      sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*0.7,0),coreMat));
+      sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*1.1,0),new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:0.3})));
+      sg.userData.coreMat=coreMat;
+      globeMainGroup.add(sg);
+      const hit=new THREE.Mesh(new THREE.SphereGeometry(r*2.2,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
+      hit.position.copy(pos);hit.userData={id:g.id,type:'discovery',index:i,sg};
+      globeMainGroup.add(hit);allNodeMeshes.push(hit);
+      const glow=new THREE.Mesh(new THREE.SphereGeometry(r*3.0,10,10),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:THREE.BackSide}));
+      glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
+      const words=g.label.split(' ');const cv2=document.createElement('canvas');cv2.width=256;cv2.height=56;
+      const ctx2=cv2.getContext('2d');ctx2.fillStyle=typeColor;ctx2.font="600 13px 'Courier New',monospace";ctx2.textAlign='center';
+      ctx2.fillText(words.slice(0,2).join(' '),128,22);if(words.length>2){ctx2.font="11px 'Courier New',monospace";ctx2.fillText(words.slice(2).join(' '),128,38);}
+      const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthWrite:false,opacity:0.75}));
+      sp2.scale.set(0.7,0.175,1);sp2.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.16)));
+      globeMainGroup.add(sp2);
+      return;
     }
-    const r=0.07*(g.size||1);
-    const spGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),pos.clone()]);
-    globeMainGroup.add(new THREE.Line(spGeo,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.04})));
-    /* Octahedron shape for discovery nodes */
+
+    // Cluster mode — orbital hierarchy, same pattern as pipeline above.
+    const hub = discHubState[discOwnerName];
+    const grantOrbitR = 0.38 + Math.min(hub.grantCount,10)*0.045;
+    const grantOrbit = {
+      r: grantOrbitR,
+      speed: 0.08859375 + (i%5)*0.01771875,
+      phase: (i * 2.399963),
+      tiltX: ((i%3)-1)*0.5,
+      tiltZ: ((i%4)-1.5)*0.4,
+      pulseOffset: i*1.13,
+      pulseSpeed: 0.9 + (i%4)*0.3,
+    };
+    const pos = new THREE.Vector3(
+      hub.baseDir[0]*2.2 + grantOrbit.r*Math.cos(grantOrbit.phase),
+      hub.baseDir[1]*2.2 + grantOrbit.r*Math.sin(grantOrbit.phase)*Math.sin(grantOrbit.tiltX),
+      hub.baseDir[2]*2.2 + grantOrbit.r*Math.sin(grantOrbit.phase)*Math.cos(grantOrbit.tiltZ)
+    );
+
+    const lineGeo=new THREE.BufferGeometry().setFromPoints([pos.clone(),pos.clone()]);
+    const line=new THREE.Line(lineGeo,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.1}));
+    globeMainGroup.add(line);
+
     const sg=new THREE.Group();
-    sg.position.copy(pos);sg.userData={id:g.id,type:'discovery',index:i};
+    sg.position.copy(pos);sg.userData={id:g.id,type:'discovery',index:i,ownerName:discOwnerName,orbit:grantOrbit,hub,line};
     const coreMat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.85});
     sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*0.7,0),coreMat));
     sg.add(new THREE.Mesh(new THREE.OctahedronGeometry(r*1.1,0),new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:0.3})));
     sg.userData.coreMat=coreMat;
     globeMainGroup.add(sg);
     const hit=new THREE.Mesh(new THREE.SphereGeometry(r*2.2,8,8),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
-    hit.position.copy(pos);hit.userData={id:g.id,type:'discovery',index:i,sg};
+    hit.position.copy(pos);hit.userData={id:g.id,type:'discovery',index:i,sg,ownerName:discOwnerName,orbit:grantOrbit,hub,line};
     globeMainGroup.add(hit);allNodeMeshes.push(hit);
     const glow=new THREE.Mesh(new THREE.SphereGeometry(r*3.0,10,10),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,side:THREE.BackSide}));
     glow.position.copy(pos);globeMainGroup.add(glow);allGlowMeshes.push(glow);
+
     const words=g.label.split(' ');const cv2=document.createElement('canvas');cv2.width=256;cv2.height=56;
     const ctx2=cv2.getContext('2d');ctx2.fillStyle=typeColor;ctx2.font="600 13px 'Courier New',monospace";ctx2.textAlign='center';
     ctx2.fillText(words.slice(0,2).join(' '),128,22);if(words.length>2){ctx2.font="11px 'Courier New',monospace";ctx2.fillText(words.slice(2).join(' '),128,38);}
     const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2),transparent:true,depthWrite:false,opacity:0.75}));
-    sp2.scale.set(0.7,0.175,1);sp2.position.copy(pos.clone().add(pos.clone().normalize().multiplyScalar(0.16)));
+    sp2.scale.set(0.7,0.175,1);
     globeMainGroup.add(sp2);
+    sg.userData.labelSprite=sp2;
+    hit.userData.labelSprite=sp2;
   });
 
-  /* ── Neural network lines — faint, pulsing (cluster mode only) ── */
-  const neuralLines=[];
-  if(globeMode!=='geo') allNodeMeshes.forEach(dHit=>{
-    if(dHit.userData.type!=='discovery')return;
-    const dg=DISC_SEED.find(g=>g.id===dHit.userData.id);if(!dg)return;
-    allNodeMeshes.forEach(pHit=>{
-      if(pHit.userData.type!=='pipeline')return;
-      const pg=grants.find(g=>g.id===pHit.userData.id);if(!pg)return;
-      const match=dg.region.toLowerCase()===pg.geo.toLowerCase().split('/')[0].trim()||
-                  pg.geo.toLowerCase().includes(dg.region.toLowerCase())||
-                  dg.geo.toLowerCase().includes(pg.geo.toLowerCase().split('/')[0].trim());
-      if(!match)return;
-      const mat=new THREE.LineBasicMaterial({color:0x1a4a6a,transparent:true,opacity:0.12});
-      const geo=new THREE.BufferGeometry().setFromPoints([pHit.position.clone(),dHit.position.clone()]);
-      const line=new THREE.Line(geo,mat);
-      globeMainGroup.add(line);
-      // urgency drives pulse speed and peak brightness
-      const urgency=(pg.urgency||50)/100;
-      neuralLines.push({mat, urgency, offset:Math.random()*Math.PI*2});
+  /* ── Discovery owner hub markers — themselves orbit the shared center (cluster mode only) ── */
+  if(globeMode!=='geo'){
+    discOwnerNames.forEach(ownerName=>{
+      const hub=discHubState[ownerName];
+      const isUnassigned = ownerName==='Unassigned (Discovery)';
+      const hubColor = isUnassigned ? 0x4b5563 : 0x34d399;
+      const initialPos=new THREE.Vector3(hub.baseDir[0]*3.74,hub.baseDir[1]*3.74,hub.baseDir[2]*3.74);
+
+      const hubGroup=new THREE.Group();
+      hubGroup.position.copy(initialPos);
+      hubGroup.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.075,0),new THREE.MeshBasicMaterial({color:hubColor,transparent:true,opacity:isUnassigned?0.4:0.75})));
+      hubGroup.add(new THREE.Mesh(new THREE.OctahedronGeometry(0.12,0),new THREE.MeshBasicMaterial({color:hubColor,wireframe:true,transparent:true,opacity:0.18})));
+      globeMainGroup.add(hubGroup);
+
+      const hcv2=document.createElement('canvas');hcv2.width=220;hcv2.height=36;
+      const hctx2=hcv2.getContext('2d');hctx2.fillStyle=isUnassigned?'#6b7280':'#34d399';
+      hctx2.font="600 13px 'Courier New',monospace";hctx2.textAlign='center';
+      hctx2.fillText(ownerName.toUpperCase(),110,22);
+      const hsp2=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hcv2),transparent:true,depthWrite:false,opacity:0.75}));
+      hsp2.scale.set(0.6,0.1,1);
+      globeMainGroup.add(hsp2);
+
+      hub.hubGroup=hubGroup; hub.labelSprite=hsp2; hub.shellR=3.74;
+      discHubObjects.push(hub);
     });
-  });
-  if(globeMode!=='geo') globeMainGroup.userData.neuralLines=neuralLines;
-  else globeMainGroup.userData.neuralLines=neuralLines; // empty in geo mode
+  }
 
-  /* ── Resize ── */
+  
+/* ── Resize ── */
   new ResizeObserver(()=>{
     const m=document.getElementById('globe-mount');
     const nW=m.clientWidth,nH=Math.max(m.clientHeight,300);
@@ -3530,9 +3691,35 @@ function buildUnifiedGlobe(){
     globeRAF=requestAnimationFrame(animate);
     globeTime+=0.016;
     if(!autoRotate&&!isDragging)autoRotate=true;
-    if(autoRotate)rotY+=globeMode==='geo'?0.00035:0.0008;
+    if(autoRotate)rotY+=globeMode==='geo'?0.0000911:0.0002025;
     globeMainGroup.rotation.y=rotY;globeMainGroup.rotation.x=rotX;
     globeCamera.position.z+=(zoom-globeCamera.position.z)*0.08;globeCamera.updateProjectionMatrix();
+
+    // ── Orbital hierarchy: owner hubs revolve around the shared center,
+    // grants/discovery items revolve around their own owner's CURRENT
+    // (moving) hub position. This runs every frame in cluster mode only —
+    // geo mode nodes were given fixed positions at build time and have no
+    // orbit/hub userData, so they're simply skipped here.
+    if(globeMode!=='geo'){
+      [...pipelineHubObjects,...discHubObjects].forEach(hub=>{
+        if(!hub.hubGroup) return;
+        const angle = hub.orbitPhase + globeTime*hub.orbitSpeed;
+        // Hub orbits in the XZ-ish plane defined by its own base direction,
+        // offset by orbitR — keeps multiple hubs from colliding while still
+        // reading as "orbiting a shared center".
+        const cx = hub.baseDir[0]*hub.shellR + Math.cos(angle)*hub.orbitR*0.55;
+        const cy = hub.baseDir[1]*hub.shellR + Math.sin(angle*0.7)*hub.orbitR*0.3;
+        const cz = hub.baseDir[2]*hub.shellR + Math.sin(angle)*hub.orbitR*0.55;
+        hub.hubGroup.position.set(cx,cy,cz);
+        if(hub.ringLine) hub.ringLine.position.set(cx,cy,cz);
+        if(hub.labelSprite){
+          const len=Math.sqrt(cx*cx+cy*cy+cz*cz)||1;
+          hub.labelSprite.position.set(cx+(cx/len)*0.18, cy+(cy/len)*0.18, cz+(cz/len)*0.18);
+        }
+        hub.currentPos = [cx,cy,cz];
+      });
+    }
+
     raycaster.setFromCamera(mousePos,globeCamera);
     const hits=raycaster.intersectObjects(allNodeMeshes);
     const hovId=hits.length>0?hits[0].object.userData.id:null;
@@ -3540,21 +3727,47 @@ function buildUnifiedGlobe(){
       const sg=hit.userData.sg;if(!sg)return;
       const id=hit.userData.id,type=hit.userData.type;
       const isHov=id===hovId,isSel=type==='pipeline'?id===selectedId:id===discSelectedId;
+
+      // Recompute this node's orbital position around its (now-moved) hub.
+      const orbit=hit.userData.orbit, hub=hit.userData.hub;
+      if(orbit && hub && hub.currentPos){
+        const a = orbit.phase + globeTime*orbit.speed;
+        const [hx,hy,hz] = hub.currentPos;
+        const nx = hx + orbit.r*Math.cos(a);
+        const ny = hy + orbit.r*Math.sin(a)*Math.sin(orbit.tiltX);
+        const nz = hz + orbit.r*Math.sin(a)*Math.cos(orbit.tiltZ);
+        sg.position.set(nx,ny,nz);
+        hit.position.set(nx,ny,nz);
+        if(allGlowMeshes[idx]) allGlowMeshes[idx].position.set(nx,ny,nz);
+        if(hit.userData.labelSprite){
+          const len=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+          hit.userData.labelSprite.position.set(nx+(nx/len)*0.22, ny+(ny/len)*0.22, nz+(nz/len)*0.22);
+        }
+        // Update the connecting line geometry in place (hub -> node) rather
+        // than rebuilding it — far cheaper every frame.
+        if(hit.userData.line){
+          const posAttr=hit.userData.line.geometry.attributes.position;
+          if(posAttr){
+            posAttr.array[0]=hx; posAttr.array[1]=hy; posAttr.array[2]=hz;
+            posAttr.array[3]=nx; posAttr.array[4]=ny; posAttr.array[5]=nz;
+            posAttr.needsUpdate=true;
+          }
+          // "Data transmission" pulse — a sharp travelling brightness wave
+          // along the otherwise-faint white line, not a smooth uniform glow.
+          // pow() sharpens the peak so it reads as a brief pulse rather than
+          // a slow breathing fade.
+          const pOff=orbit.pulseOffset||0, pSpd=orbit.pulseSpeed||1;
+          const wave=Math.pow(Math.max(0,Math.sin(globeTime*pSpd+pOff)),6);
+          hit.userData.line.material.opacity=0.04+wave*0.5;
+        }
+      }
+
       const pulse=1+Math.sin(globeTime*2+idx*0.9)*0.04;
       sg.scale.setScalar(isSel?1.35:isHov?1.18:pulse);
       if(sg.userData.coreMat)sg.userData.coreMat.opacity=isSel?1.0:isHov?0.95:type==='pipeline'?0.88:0.82;
       if(allGlowMeshes[idx])allGlowMeshes[idx].material.opacity=isSel?0.28:isHov?0.14:0.03;
-      if(type==='pipeline')sg.rotation.y=globeTime*0.22*(idx%2===0?1:-1);
-      else{sg.rotation.y=globeTime*0.11;sg.rotation.x=globeTime*0.08*(idx%2===0?1:-1);}
-    });
-    // Animate neural lines — pulse brightness outward from pipeline node
-    const nl=globeMainGroup.userData.neuralLines||[];
-    nl.forEach(l=>{
-      // urgency controls speed (0.4–1.2) and peak opacity (0.12–0.45)
-      const speed=0.4+l.urgency*0.8;
-      const peak=0.12+l.urgency*0.33;
-      l.offset+=speed*0.016;
-      l.mat.opacity=0.06+(Math.sin(l.offset)*0.5+0.5)*(peak-0.06);
+      if(type==='pipeline')sg.rotation.y=globeTime*0.0556875*(idx%2===0?1:-1);
+      else{sg.rotation.y=globeTime*0.02784375;sg.rotation.x=globeTime*0.02025*(idx%2===0?1:-1);}
     });
     globeRenderer.domElement.style.cursor=hovId?'pointer':'crosshair';
     globeRenderer.render(globeScene,globeCamera);
@@ -3898,11 +4111,14 @@ function switchView(view){
 }
 
 function buildRepoFilters(){
-  // Geo filters from all data
+  // Geo filters from all data — collapsed into a single dropdown tab rather
+  // than one button per region, since the list can run long.
   const allGeos=[...new Set([...grants.map(g=>g.geo),...DISC_SEED.map(g=>g.region)])].sort();
-  const geoEl=document.getElementById('repo-geo-filters');
-  geoEl.innerHTML='<button class="repo-filter active" data-filter="geo" data-val="all" onclick="repoFilter(this)">All</button>'
-    +allGeos.map(g=>`<button class="repo-filter" data-filter="geo" data-val="${g}" onclick="repoFilter(this)">${g}</button>`).join('');
+  const menuEl=document.getElementById('repo-region-menu');
+  menuEl.innerHTML='<button class="repo-region-opt active" data-val="all" onclick="selectRegion(this)">All Regions</button>'
+    +allGeos.map(g=>`<button class="repo-region-opt" data-val="${g}" onclick="selectRegion(this)">${g}</button>`).join('');
+  document.getElementById('repo-region-tab-label').textContent='All Regions';
+  document.getElementById('repo-region-tab').classList.remove('has-selection');
   
   // Status filters
   const statEl=document.getElementById('repo-status-filters');
@@ -3919,6 +4135,38 @@ function repoFilter(btn){
   btn.classList.add('active');
   renderRepo();
 }
+
+// ── Region dropdown (collapsed single tab) ──
+function toggleRegionMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('repo-region-menu');
+  const tab=document.getElementById('repo-region-tab');
+  const isOpen=menu.classList.contains('open');
+  menu.classList.toggle('open', !isOpen);
+  tab.classList.toggle('open', !isOpen);
+}
+
+function selectRegion(btn){
+  const val=btn.dataset.val;
+  repoFilters.geo=val;
+  document.querySelectorAll('.repo-region-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('repo-region-tab-label').textContent = val==='all' ? 'All Regions' : val;
+  document.getElementById('repo-region-tab').classList.toggle('has-selection', val!=='all');
+  document.getElementById('repo-region-menu').classList.remove('open');
+  document.getElementById('repo-region-tab').classList.remove('open');
+  renderRepo();
+}
+
+// Close the region dropdown when clicking anywhere outside it
+document.addEventListener('click', e=>{
+  const dd=document.getElementById('repo-region-dd');
+  if(dd && !dd.contains(e.target)){
+    document.getElementById('repo-region-menu')?.classList.remove('open');
+    document.getElementById('repo-region-tab')?.classList.remove('open');
+  }
+});
+
 
 function renderRepo(){
   const sort=document.getElementById('repo-sort').value;
@@ -5462,6 +5710,63 @@ function teamOpenAssignment(grantId, eventId){
     renderContent();
   }, 250);
 }
+
+// ══════════════════════════════════════════════════
+// OWNER-BASED CLUSTERING — Cluster mode groups grants/discovery
+// items around the node of whoever owns them, instead of region.
+// Geo Map mode is untouched and still uses real-world coordinates.
+// ══════════════════════════════════════════════════
+
+// Resolve the display owner name for a PIPELINE grant.
+// Preference order: structured Project Owner role > any structured owner >
+// free-text g.owner field (used by Edit/Add Grant/Promote) > 'Unassigned'.
+function resolveGrantOwnerName(g){
+  const list = owners[g.id] || [];
+  if(list.length){
+    const po = list.find(o=>o.role==='project-owner');
+    return (po || list[0]).name.trim();
+  }
+  if(g.owner && g.owner.trim()) return g.owner.trim();
+  return 'Unassigned';
+}
+
+// Resolve the display owner name for a DISCOVERY item.
+// Discovery items only support the structured owners[] assignment today
+// (no free-text owner field exists on discovery objects) — same precedence
+// otherwise. Discovery's "Unassigned" is tracked as a separate cluster from
+// pipeline's "Unassigned" per the agreed design.
+function resolveDiscoveryOwnerName(g){
+  const list = owners[g.id] || [];
+  if(list.length){
+    const po = list.find(o=>o.role==='project-owner');
+    return (po || list[0]).name.trim();
+  }
+  return 'Unassigned (Discovery)';
+}
+
+// Deterministic, evenly-spaced anchor positions for a set of cluster keys —
+// same key always produces the same position across rebuilds (sorted order),
+// so the globe doesn't visually jump around when grants/owners change.
+// Returns { key: [x,y,z] } unit-direction vectors.
+function buildClusterAnchors(keys){
+  const sorted = [...keys].sort();
+  const n = sorted.length;
+  const anchors = {};
+  sorted.forEach((key,i)=>{
+    if(n===1){ anchors[key] = [0,0.5,0.6]; return; }
+    // Fibonacci sphere distribution — spreads N points evenly over a sphere
+    // surface so owner clusters don't crowd into one hemisphere.
+    const phi = Math.acos(1 - 2*(i+0.5)/n);
+    const theta = Math.PI*(1+Math.sqrt(5))*(i+0.5);
+    anchors[key] = [
+      Math.sin(phi)*Math.cos(theta),
+      Math.cos(phi),
+      Math.sin(phi)*Math.sin(theta),
+    ];
+  });
+  return anchors;
+}
+
 
 function authComplete(){
   // Gate: double-check auth token before allowing init
