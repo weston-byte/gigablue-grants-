@@ -616,6 +616,39 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 @media(max-width:700px){
   .team-grid{grid-template-columns:1fr 1fr}
 }
+
+/* ── @Mentions ── */
+.team-card{position:relative}
+.team-mention-bubble{position:absolute;top:-6px;right:-6px;background:#f87171;color:#fff;
+  font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;
+  box-shadow:0 0 0 2px var(--bg1);font-family:'Courier New',monospace;z-index:2}
+.td-name-row{display:flex;align-items:center;gap:8px}
+.td-mention-bubble{background:#f87171;color:#fff;font-size:9px;font-weight:700;
+  min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;
+  justify-content:center;padding:0 5px;font-family:'Courier New',monospace}
+.td-mention-row{background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);
+  border-left:3px solid #f87171;border-radius:4px;padding:10px 14px;cursor:pointer;
+  transition:all 0.15s;margin-bottom:8px}
+.td-mention-row:hover{border-color:#f87171;background:rgba(248,113,113,0.09)}
+.td-mention-row.read{opacity:0.55;border-left-color:var(--border)}
+.td-mention-grant{font-size:10px;color:var(--cyan);font-weight:700;margin-bottom:4px}
+.td-mention-text{font-size:10px;color:var(--textD);line-height:1.6;margin-bottom:4px}
+.td-mention-meta{font-size:8px;color:var(--textF);letter-spacing:0.5px}
+.td-mention-loc{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}
+.td-mention-loc-text{font-size:8px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase}
+.td-mention-reply-btn{background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.35);
+  color:var(--cyan);font-family:'Courier New',monospace;font-size:7px;letter-spacing:1.5px;
+  padding:4px 10px;border-radius:3px;cursor:pointer;text-transform:uppercase;
+  transition:all 0.15s;white-space:nowrap}
+.td-mention-reply-btn:hover{background:rgba(79,195,247,0.2);border-color:var(--cyan)}
+.td-mention-row.read .td-mention-reply-btn{opacity:0.6}
+@keyframes mentionFlash{
+  0%,100%{background:transparent;box-shadow:none}
+  20%,60%{background:rgba(79,195,247,0.12);box-shadow:0 0 0 1px rgba(79,195,247,0.4)}
+}
+.mention-highlight{animation:mentionFlash 1.6s ease-in-out 2}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -1184,10 +1217,16 @@ select.pm-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
         <div class="td-hdr">
           <div class="td-avatar" id="td-avatar"></div>
           <div>
-            <div class="td-name" id="td-name"></div>
+            <div class="td-name-row">
+              <div class="td-name" id="td-name"></div>
+              <span class="td-mention-bubble" id="td-mention-bubble" style="display:none"></span>
+            </div>
             <div class="td-sub" id="td-sub"></div>
           </div>
         </div>
+
+        <div class="td-section-title" id="td-mentions-title" style="display:none">@ Mentions</div>
+        <div class="td-mention-list" id="td-mention-list" style="margin-bottom:18px"></div>
 
         <div class="td-section-title">Active Grants<span id="td-grant-count" style="color:var(--textF);font-size:8px"></span></div>
         <div class="td-grant-list" id="td-grant-list"></div>
@@ -2645,6 +2684,7 @@ function loadStorage(){
   try{const r2=localStorage.getItem('gb5_owners');if(r2)owners=JSON.parse(r2);}catch(e){}
   try{const r3=localStorage.getItem('gb5_comments');if(r3)comments=JSON.parse(r3);}catch(e){}
   loadTeamComments();
+  loadSeenMentions();
 }
 
 
@@ -2939,7 +2979,7 @@ function renderContent(){
       </div>
       <div class="sec-label">Progress log<span class="sec-line"></span><span style="color:var(--textF);font-size:9px">${gComments.length} entr${gComments.length===1?'y':'ies'}</span></div>
       ${sorted.length===0?'<div class="empty-state">No progress entries yet.</div>':''}
-      ${sorted.map((c,i)=>`<div class="log-entry${i===0?' latest':''}" style="border-left-color:${i===0?s.color:'var(--border)'}"><div class="log-top"><span class="log-ts" style="color:${s.color}">${fmt(c.ts)}</span><button class="rm-btn" onclick="removeComment('${c.id}')">Remove</button></div><p class="log-text${i===0?' latest':''}">${c.text}</p></div>`).join('')}
+      ${sorted.map((c,i)=>`<div class="log-entry${i===0?' latest':''}" id="log-${c.id}" style="border-left-color:${i===0?s.color:'var(--border)'}"><div class="log-top"><span class="log-ts" style="color:${s.color}">${fmt(c.ts)}</span><button class="rm-btn" onclick="removeComment('${c.id}')">Remove</button></div><p class="log-text${i===0?' latest':''}">${c.text}</p></div>`).join('')}
       <div class="sec-label" style="margin-top:14px">Log update<span class="sec-line"></span></div>
       <textarea id="comment-ta" class="ta" rows="3" placeholder="Describe a development, meeting outcome, status change, or next step..."></textarea>
       <button class="btn-commit" onclick="addComment()">COMMIT ENTRY</button>
@@ -4953,6 +4993,8 @@ function loadTeamComments(){
 
 function getAllTeamMembers(){
   const map = {};
+
+  // 1. People with at least one owner assignment — their "Active Grants" list
   Object.entries(owners).forEach(([grantId, ownerList])=>{
     const g = grants.find(g=>g.id===grantId);
     if(!ownerList || !ownerList.length) return;
@@ -4971,6 +5013,33 @@ function getAllTeamMembers(){
       });
     });
   });
+
+  // 2. People who appear ONLY because they've been @mentioned somewhere —
+  // including a grant they have never been assigned to, and even if they've
+  // NEVER been a formal owner anywhere at all. The first time someone is
+  // @mentioned, that creates their Team page automatically (using the
+  // capitalisation exactly as typed in the @mention, e.g. "@Guy" -> "Guy").
+  // We key by first name (lowercased) the same way the mention matcher does,
+  // so "@Guy" always resolves to the same person regardless of which grant
+  // it appears on.
+  const mentionedNames = new Map(); // firstNameLower -> exact-cased name as first typed
+  Object.values(comments).forEach(log=>{
+    (log||[]).forEach(c=>{
+      const found = c.text.match(/@([A-Za-z][\w'-]*)/g) || [];
+      found.forEach(tag=>{
+        const name = tag.slice(1);
+        const key = name.toLowerCase();
+        if(!mentionedNames.has(key)) mentionedNames.set(key, name);
+      });
+    });
+  });
+  mentionedNames.forEach((typedName, key)=>{
+    // If this first name already matches an existing assigned team member,
+    // leave that record untouched — don't overwrite their real grants list.
+    if(map[key]) return;
+    map[key] = { name: typedName, grants: [] };
+  });
+
   return Object.values(map).sort((a,b)=>b.grants.length-a.grants.length);
 }
 
@@ -4984,7 +5053,9 @@ function renderTeamGrid(){
   grid.innerHTML = members.map(m=>{
     const avgUrgency = Math.round(m.grants.reduce((s,g)=>s+g.urgency,0)/m.grants.length);
     const pursueCount = m.grants.filter(g=>g.status==='pursue').length;
+    const unreadMentions = getUnreadMentionCount(m.name);
     return `<div class="team-card" onclick="teamSelect('${m.name.replace(/'/g,"\\'")}')">
+      ${unreadMentions>0?`<span class="team-mention-bubble">${unreadMentions}</span>`:''}
       <div class="team-card-top">
         <div class="team-card-avatar" style="background:${avatarColor(m.name)}">${initials(m.name)}</div>
         <div>
@@ -5012,23 +5083,26 @@ function teamSelect(name){
   document.getElementById('td-avatar').style.background = avatarColor(m.name);
   document.getElementById('td-avatar').textContent = initials(m.name);
   document.getElementById('td-name').textContent = m.name;
-  document.getElementById('td-sub').textContent = m.grants.length + ' grant' + (m.grants.length===1?'':'s') + ' assigned';
+  document.getElementById('td-sub').textContent = m.grants.length ? (m.grants.length + ' grant' + (m.grants.length===1?'':'s') + ' assigned') : 'No formal assignments \u2014 mentioned only';
   document.getElementById('td-grant-count').textContent = '// ' + m.grants.length;
 
-  document.getElementById('td-grant-list').innerHTML = m.grants.map(g=>{
-    const sm = STATUS_META[g.status] || STATUS_META.watch;
-    return `<div class="td-grant-row" onclick="teamOpenGrant('${g.id}')" style="border-left-color:${sm.color}">
-      <div>
-        <div class="td-grant-name">${g.label}</div>
-        <div class="td-grant-meta">${g.geo} \u00b7 urgency ${g.urgency} \u00b7 readiness ${g.readiness}%</div>
-      </div>
-      <span class="td-grant-role" style="color:${sm.color};border-color:${sm.color}55">${sm.label}</span>
-    </div>`;
-  }).join('');
+  document.getElementById('td-grant-list').innerHTML = m.grants.length
+    ? m.grants.map(g=>{
+        const sm = STATUS_META[g.status] || STATUS_META.watch;
+        return `<div class="td-grant-row" onclick="teamOpenGrant('${g.id}')" style="border-left-color:${sm.color}">
+          <div>
+            <div class="td-grant-name">${g.label}</div>
+            <div class="td-grant-meta">${g.geo} \u00b7 urgency ${g.urgency} \u00b7 readiness ${g.readiness}%</div>
+          </div>
+          <span class="td-grant-role" style="color:${sm.color};border-color:${sm.color}55">${sm.label}</span>
+        </div>`;
+      }).join('')
+    : '<div class="td-empty-ai">// no formal grant assignments \u2014 see mentions below</div>';
 
   document.getElementById('td-ai-results').innerHTML = '<div class="td-empty-ai">// click "Generate Plan" for an AI-prioritised action plan across all of '+m.name.split(' ')[0]+"'s grants</div>";
   document.getElementById('td-ai-status').style.display = 'none';
 
+  renderTeamMentions(m.name);
   renderTeamComments();
 }
 
@@ -5136,6 +5210,108 @@ function teamRemoveComment(cid){
   renderTeamComments();
 }
 
+
+
+// ══════════════════════════════════════════════════
+// @MENTIONS — cross-grant team notifications
+// ══════════════════════════════════════════════════
+let seenMentions = {}; // { mentionKey: true } — mentionKey = grantId+'::'+commentId
+
+const saveSeenMentions = () => { try{ localStorage.setItem('gb5_seenMentions', JSON.stringify(seenMentions)); }catch(e){} };
+function loadSeenMentions(){
+  try{
+    const raw = localStorage.getItem('gb5_seenMentions');
+    if(raw) seenMentions = JSON.parse(raw);
+  }catch(e){}
+}
+
+// Scan every grant's comment log for @FirstName mentions matching a known team member.
+// Returns: [{ grantId, grantLabel, commentId, text, ts, mentionKey, isRead }]
+function getMentionsForPerson(fullName){
+  const firstName = fullName.trim().split(/\s+/)[0];
+  if(!firstName) return [];
+  // \b after the name ensures "@West" doesn't also match "@Westonmorgan"
+  const re = new RegExp('@' + firstName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+  const results = [];
+  Object.entries(comments).forEach(([grantId, log])=>{
+    const g = grants.find(g=>g.id===grantId);
+    if(!log || !log.length) return;
+    log.forEach(c=>{
+      if(re.test(c.text)){
+        const mentionKey = grantId + '::' + c.id;
+        results.push({
+          grantId,
+          grantLabel: g ? g.label : '(grant removed)',
+          commentId: c.id,
+          text: c.text,
+          ts: c.ts,
+          mentionKey,
+          isRead: !!seenMentions[mentionKey],
+        });
+      }
+    });
+  });
+  return results.sort((a,b)=>b.ts-a.ts);
+}
+
+function getUnreadMentionCount(fullName){
+  return getMentionsForPerson(fullName).filter(m=>!m.isRead).length;
+}
+
+function renderTeamMentions(fullName){
+  const mentions = getMentionsForPerson(fullName);
+  const titleEl = document.getElementById('td-mentions-title');
+  const listEl = document.getElementById('td-mention-list');
+  if(!mentions.length){
+    titleEl.style.display = 'none';
+    listEl.innerHTML = '';
+    return;
+  }
+  titleEl.style.display = 'flex';
+  const unread = mentions.filter(m=>!m.isRead).length;
+  titleEl.innerHTML = '@ Mentions' + (unread>0 ? `<span class="td-mention-bubble">${unread}</span>` : '');
+  listEl.innerHTML = mentions.map(m=>`
+    <div class="td-mention-row${m.isRead?' read':''}" onclick="teamOpenMention('${m.grantId}','${m.mentionKey}')">
+      <div class="td-mention-grant">// ${m.grantLabel}</div>
+      <div class="td-mention-text">${m.text}</div>
+      <div class="td-mention-meta">${fmt(m.ts)}${m.isRead?' · read':''}</div>
+      <div class="td-mention-loc">
+        <span class="td-mention-loc-text">◉ ${m.grantLabel} → Progress Log</span>
+        <button class="td-mention-reply-btn" onclick="event.stopPropagation();teamOpenMention('${m.grantId}','${m.mentionKey}')">Reply →</button>
+      </div>
+    </div>`).join('');
+}
+
+
+// Clicking a mention marks it read and jumps to the grant's progress log
+function teamOpenMention(grantId, mentionKey){
+  seenMentions[mentionKey] = true;
+  saveSeenMentions();
+  // mentionKey format is 'grantId::commentId' — extract the comment id so we
+  // can scroll straight to the specific entry in the Progress Log, not just
+  // the tab in general.
+  const commentId = mentionKey.split('::')[1];
+  switchView('globe');
+  setTimeout(()=>{
+    selectGrant(grantId);
+    activeTab = 'progress';
+    renderPanelHeader();
+    renderContent();
+    // renderContent rebuilds the DOM, then attaches the slider via
+    // requestAnimationFrame — wait one more tick before scrolling so the
+    // target element actually exists.
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        const el = document.getElementById('log-'+commentId);
+        if(el){
+          el.scrollIntoView({behavior:'smooth',block:'center'});
+          el.classList.add('mention-highlight');
+          setTimeout(()=>el.classList.remove('mention-highlight'), 3300);
+        }
+      }, 80);
+    });
+  }, 250);
+}
 
 function authComplete(){
   // Gate: double-check auth token before allowing init
